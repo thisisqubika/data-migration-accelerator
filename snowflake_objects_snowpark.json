@@ -1,0 +1,460 @@
+{
+  "database": "DATA_MIGRATION_DB",
+  "schema": "DATA_MIGRATION_SCHEMA",
+  "tables": [
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "table_name": "DATA_MIGRATION_SOURCE",
+      "table_type": "BASE TABLE",
+      "row_count": 0,
+      "bytes": 0,
+      "created": "2025-11-20 12:53:20.787000-08:00",
+      "last_altered": "2025-11-20 13:05:49.773000-08:00",
+      "comment": "Data migration source table with various data types",
+      "columns": [
+        {
+          "column_name": "SOURCE_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_NAME",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_TYPE",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_CONNECTION",
+          "data_type": "TEXT",
+          "character_maximum_length": 255,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_STATUS",
+          "data_type": "TEXT",
+          "character_maximum_length": 50,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_TIMESTAMP",
+          "data_type": "TIMESTAMP_NTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "IS_ACTIVE",
+          "data_type": "BOOLEAN",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "RECORD_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 18,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "METADATA",
+          "data_type": "VARIANT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TAGS",
+          "data_type": "ARRAY",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CONFIG",
+          "data_type": "OBJECT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CREATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        },
+        {
+          "column_name": "UPDATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        }
+      ],
+      "sample_data": []
+    },
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "table_name": "DATA_MIGRATION_TARGET",
+      "table_type": "BASE TABLE",
+      "row_count": 0,
+      "bytes": 0,
+      "created": "2025-11-20 12:53:55.414000-08:00",
+      "last_altered": "2025-11-20 12:53:55.569000-08:00",
+      "comment": "Data migration target table with clustering and time travel",
+      "columns": [
+        {
+          "column_name": "TARGET_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TARGET_NAME",
+          "data_type": "TEXT",
+          "character_maximum_length": 200,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TARGET_TYPE",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_DATE",
+          "data_type": "DATE",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_STATUS",
+          "data_type": "TEXT",
+          "character_maximum_length": 50,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TOTAL_RECORDS",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 18,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SUCCESS_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 10,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": "0",
+          "comment": null
+        },
+        {
+          "column_name": "ERROR_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 10,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": "0",
+          "comment": null
+        },
+        {
+          "column_name": "IS_ACTIVE",
+          "data_type": "BOOLEAN",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "TRUE",
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_CONFIG",
+          "data_type": "VARIANT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CREATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        },
+        {
+          "column_name": "UPDATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        }
+      ],
+      "sample_data": []
+    }
+  ],
+  "views": [
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "view_name": "DATA_MIGRATION_MONTHLY_SUMMARY",
+      "view_definition": "CREATE OR REPLACE VIEW data_migration_monthly_summary AS\nSELECT \n    DATE_TRUNC('MONTH', migration_date) AS month,\n    COUNT(DISTINCT target_id) AS target_count,\n    COUNT(DISTINCT source_id) AS source_count,\n    SUM(total_records) AS total_records_migrated,\n    AVG(total_records) AS avg_records_per_target\nFROM data_migration_target\nWHERE migration_status = 'COMPLETED'\nGROUP BY DATE_TRUNC('MONTH', migration_date);",
+      "created": "2025-11-20 12:57:08.768000-08:00",
+      "comment": null
+    }
+  ],
+  "procedures": [
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "procedure_name": "DATA_MIGRATION_GET_TARGETS",
+      "procedure_definition": "\n    SELECT \n        target_id,\n        migration_date,\n        migration_status,\n        total_records\n    FROM data_migration_target\n    WHERE source_id = source_id_param\n    ORDER BY migration_date DESC;\n",
+      "created": "2025-11-20 13:02:56.806000-08:00",
+      "last_altered": "2025-11-20 13:02:56.806000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "procedure_name": "DATA_MIGRATION_UPDATE_STATUS",
+      "procedure_definition": "\nDECLARE\n    current_success NUMBER;\n    current_error NUMBER;\n    new_success NUMBER;\n    new_error NUMBER;\nBEGIN\n    -- Get current counts\n    SELECT success_count, error_count INTO current_success, current_error\n    FROM data_migration_target\n    WHERE target_id = target_id_param;\n    \n    -- Calculate new counts\n    new_success := current_success + success_count_change;\n    new_error := current_error + error_count_change;\n    \n    -- Update counts\n    UPDATE data_migration_target\n    SET success_count = new_success,\n        error_count = new_error,\n        total_records = new_success + new_error,\n        updated_at = CURRENT_TIMESTAMP()\n    WHERE target_id = target_id_param;\n    \n    RETURN 'Status updated: Success=' || new_success || ', Error=' || new_error;\nEND;\n",
+      "created": "2025-11-20 13:03:14.658000-08:00",
+      "last_altered": "2025-11-20 13:03:14.658000-08:00",
+      "comment": null
+    }
+  ],
+  "functions": [
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "function_name": "DATA_MIGRATION_GET_TOP_SOURCES",
+      "function_definition": "\n    SELECT \n        source_id,\n        source_name,\n        total_records_migrated\n    FROM (\n        SELECT \n            s.source_id,\n            s.source_name,\n            COALESCE(SUM(t.total_records), 0) AS total_records_migrated,\n            ROW_NUMBER() OVER (ORDER BY COALESCE(SUM(t.total_records), 0) DESC) AS rn\n        FROM data_migration_source s\n        LEFT JOIN data_migration_target t ON s.source_id = t.source_id AND t.migration_status = 'COMPLETED'\n        GROUP BY s.source_id, s.source_name\n    )\n    WHERE rn <= limit_count\n    ORDER BY total_records_migrated DESC\n",
+      "created": "2025-11-20 13:04:39.533000-08:00",
+      "last_altered": "2025-11-20 13:04:39.533000-08:00",
+      "comment": null
+    }
+  ],
+  "sequences": [
+    {
+      "name": "DATA_MIGRATION_TARGET_ID_SEQ",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "next_value": 1,
+      "interval": 1,
+      "created_on": "2025-11-20 13:04:50.173000-08:00",
+      "owner": "SYSADMIN",
+      "comment": "Sequence for data migration target IDs",
+      "owner_role_type": "ROLE",
+      "ordered": "N"
+    }
+  ],
+  "stages": [
+    {
+      "created_on": "2025-11-20 13:05:15.203000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_STAGE",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "url": "",
+      "has_credentials": "N",
+      "has_encryption_key": "N",
+      "owner": "SYSADMIN",
+      "comment": "Stage for data migration source files",
+      "region": null,
+      "type": "INTERNAL",
+      "cloud": null,
+      "notification_channel": null,
+      "storage_integration": null,
+      "endpoint": null,
+      "owner_role_type": "ROLE",
+      "directory_enabled": "Y"
+    }
+  ],
+  "file_formats": [
+    {
+      "created_on": "2025-11-20 13:05:27.056000-08:00",
+      "name": "DATA_MIGRATION_CSV_FORMAT",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "type": "CSV",
+      "owner": "SYSADMIN",
+      "comment": "CSV file format for data migration",
+      "format_options": "{\"TYPE\":\"CSV\",\"RECORD_DELIMITER\":\"\\n\",\"FIELD_DELIMITER\":\",\",\"FILE_EXTENSION\":null,\"SKIP_HEADER\":1,\"PARSE_HEADER\":false,\"DATE_FORMAT\":\"AUTO\",\"TIME_FORMAT\":\"AUTO\",\"TIMESTAMP_FORMAT\":\"AUTO\",\"BINARY_FORMAT\":\"HEX\",\"ESCAPE\":\"NONE\",\"ESCAPE_UNENCLOSED_FIELD\":\"\\\\\",\"TRIM_SPACE\":true,\"FIELD_OPTIONALLY_ENCLOSED_BY\":\"\\\"\",\"NULL_IF\":[\"\\\\N\"],\"COMPRESSION\":\"AUTO\",\"ERROR_ON_COLUMN_COUNT_MISMATCH\":false,\"VALIDATE_UTF8\":true,\"SKIP_BLANK_LINES\":false,\"REPLACE_INVALID_CHARACTERS\":false,\"EMPTY_FIELD_AS_NULL\":true,\"SKIP_BYTE_ORDER_MARK\":true,\"ENCODING\":\"UTF8\",\"MULTI_LINE\":true}",
+      "owner_role_type": "ROLE"
+    },
+    {
+      "created_on": "2025-11-20 13:05:34.371000-08:00",
+      "name": "DATA_MIGRATION_JSON_FORMAT",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "type": "JSON",
+      "owner": "SYSADMIN",
+      "comment": "JSON file format for data migration",
+      "format_options": "{\"TYPE\":\"JSON\",\"FILE_EXTENSION\":null,\"DATE_FORMAT\":\"AUTO\",\"TIME_FORMAT\":\"AUTO\",\"TIMESTAMP_FORMAT\":\"AUTO\",\"BINARY_FORMAT\":\"HEX\",\"TRIM_SPACE\":false,\"NULL_IF\":[],\"COMPRESSION\":\"AUTO\",\"ENABLE_OCTAL\":false,\"ALLOW_DUPLICATE\":false,\"STRIP_OUTER_ARRAY\":true,\"STRIP_NULL_VALUES\":false,\"IGNORE_UTF8_ERRORS\":false,\"REPLACE_INVALID_CHARACTERS\":false,\"SKIP_BYTE_ORDER_MARK\":true,\"MULTI_LINE\":true}",
+      "owner_role_type": "ROLE"
+    }
+  ],
+  "tasks": [
+    {
+      "created_on": "2025-11-20 13:05:41.918000-08:00",
+      "name": "DATA_MIGRATION_UPDATE_DAILY_SUMMARY",
+      "id": "01c08671-3506-f1fe-0000-000000000c8a",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "owner": "SYSADMIN",
+      "comment": "Daily task to update data migration summary",
+      "warehouse": "COMPUTE_WH",
+      "schedule": "USING CRON 0 0 * * * UTC",
+      "predecessors": "[]",
+      "state": "suspended",
+      "definition": "INSERT INTO data_migration_daily_summary\n    SELECT \n        CURRENT_DATE() AS migration_date,\n        COUNT(*) AS target_count,\n        SUM(total_records) AS total_records_migrated\n    FROM data_migration_target\n    WHERE migration_date = CURRENT_DATE() - 1",
+      "condition": null,
+      "allow_overlapping_execution": "false",
+      "error_integration": "null",
+      "last_committed_on": null,
+      "last_suspended_on": null,
+      "owner_role_type": "ROLE",
+      "config": null,
+      "task_relations": "{\"Predecessors\":[]}",
+      "last_suspended_reason": null,
+      "success_integration": "null",
+      "scheduling_mode": null,
+      "target_completion_interval": null,
+      "execute_as_user": null
+    }
+  ],
+  "streams": [
+    {
+      "created_on": "2025-11-20 13:05:49.616000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_CHANGES",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "owner": "SYSADMIN",
+      "comment": "Stream to track data migration source table changes",
+      "table_name": "DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.DATA_MIGRATION_SOURCE",
+      "source_type": "Table",
+      "base_tables": "DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.DATA_MIGRATION_SOURCE",
+      "type": "DELTA",
+      "stale": "false",
+      "mode": "DEFAULT",
+      "stale_after": "2025-12-05 08:22:43.058000-08:00",
+      "invalid_reason": "N/A",
+      "owner_role_type": "ROLE"
+    }
+  ],
+  "pipes": [
+    {
+      "created_on": "2025-11-20 13:05:58.512000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_PIPE",
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "definition": "COPY INTO data_migration_source\n    FROM @data_migration_source_stage\n    FILE_FORMAT = data_migration_csv_format",
+      "owner": "SYSADMIN",
+      "notification_channel": "sfc-br-ds1-3-customer-stage/33za0000-s/",
+      "comment": "",
+      "integration": null,
+      "pattern": null,
+      "error_integration": null,
+      "owner_role_type": "ROLE",
+      "invalid_reason": null,
+      "kind": "STAGE"
+    }
+  ]
+}

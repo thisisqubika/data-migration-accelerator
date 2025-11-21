@@ -9,12 +9,68 @@ This project contains Snowflake test objects that can be used to validate extrac
 ## Files
 
 - **snowflake_test_objects.sql** - Contains sample Snowflake objects (tables, views, procedures, functions, etc.) with the `data_migration` naming convention for testing migration tools.
+- **snowpark.py** - Python script using Snowpark API to read and extract all Snowflake objects from the database.
+- **CONFIGURATION.md** - Detailed guide on configuring Snowflake credentials.
 
 ## Usage
 
 1. Execute `snowflake_test_objects.sql` in your Snowflake environment to create the test objects
 2. Use your migration tool/extractor to convert these Snowflake objects to Databricks
 3. Validate the converted objects in Databricks
+
+### Reading Snowflake Objects with Python
+
+To read all Snowflake objects programmatically using Snowpark:
+
+#### Setup
+
+1. **Set up virtual environment (recommended):**
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+   
+   # Activate virtual environment
+   # On macOS/Linux:
+   source venv/bin/activate
+   # On Windows:
+   # venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+   
+   **Note:** The virtual environment has already been created and dependencies installed. To activate it:
+   ```bash
+   source venv/bin/activate
+   ```
+
+2. **Configure credentials:**
+   - Copy the example environment file:
+     ```bash
+     cp env.example .env
+     ```
+   - Edit `.env` with your Snowflake credentials (see [CONFIGURATION.md](CONFIGURATION.md) for details):
+     - Required: `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PASSWORD`
+     - Optional: `SNOWFLAKE_DATABASE`, `SNOWFLAKE_SCHEMA`, `SNOWFLAKE_WAREHOUSE`, `SNOWFLAKE_ROLE`, `SNOWFLAKE_REGION`
+
+#### Using snowpark.py
+
+```bash
+# Make sure virtual environment is activated
+source venv/bin/activate  # On macOS/Linux
+
+# Run the script
+python snowpark.py
+```
+
+**Features:**
+- Uses Snowpark API for data processing
+- Uses password authentication
+- Reads all objects (tables, views, procedures, functions, sequences, stages, file formats, tasks, streams, pipes)
+- Includes sample data from tables (first 10 rows)
+- Queries specific test objects from `snowflake_test_objects.sql`
+- Displays a summary
+- Saves results to `snowflake_objects_snowpark.json`
 
 ## Test Objects
 
@@ -31,3 +87,27 @@ The SQL file includes:
 - **Database**: `DATA_MIGRATION_DB`
 - **Schema**: `DATA_MIGRATION_SCHEMA`
 - **Data Retention**: 1 day (max retention)
+
+### Credentials Configuration
+
+For detailed instructions on configuring Snowflake credentials, see [CONFIGURATION.md](CONFIGURATION.md).
+
+**Quick Setup:**
+1. Copy the example environment file:
+   ```bash
+   cp env.example .env
+   ```
+
+2. Edit `.env` with your Snowflake credentials:
+   ```env
+   SNOWFLAKE_ACCOUNT=your_account_identifier
+   SNOWFLAKE_USER=your_username
+   SNOWFLAKE_PASSWORD=your_password
+   SNOWFLAKE_DATABASE=DATA_MIGRATION_DB
+   SNOWFLAKE_SCHEMA=DATA_MIGRATION_SCHEMA
+   SNOWFLAKE_WAREHOUSE=COMPUTE_WH  # Optional
+   SNOWFLAKE_ROLE=SYSADMIN  # Optional
+   SNOWFLAKE_REGION=us-east-1  # Optional
+   ```
+
+3. The `.env` file is already in `.gitignore` to protect your credentials
