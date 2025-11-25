@@ -15,6 +15,7 @@ resources:
             package_name: migration_accelerator_package
           libraries:
             - whl: ../dist/*.whl
+          environment_key: "serverless_wheel"
 
       environments:
         - environment_key: "serverless_wheel"
