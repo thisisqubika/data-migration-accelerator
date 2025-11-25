@@ -9,8 +9,8 @@ packages = [{ include = "migration_accelerator_package", from = "src" }]
 [tool.poetry.dependencies]
 python = "^3.10"
 requests = ">=2.31.0"
-snowflake-connector-python>=3.0.0
-snowflake-snowpark-python>=1.0.0
+snowflake-connector-python = ">=3.0.0"
+snowflake-snowpark-python = ">=1.0.0"
 python-dotenv = ">=1.0.0"
 databricks-sdk = "*"
 
