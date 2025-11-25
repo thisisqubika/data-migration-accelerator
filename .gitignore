@@ -82,6 +82,12 @@ target/
 profile_default/
 ipython_config.py
 
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
 #   intended to run in multiple environments; otherwise, check them in:
@@ -200,6 +206,18 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Databricks
+.databricks/
+*.log
+
+# Logs
+logs/
+*.log
+
+# Build artifacts
+dist/
+build/
 
 # Marimo
 marimo/_static/
