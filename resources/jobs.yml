@@ -13,8 +13,6 @@ resources:
           python_wheel_task:
             entry_point: main
             package_name: migration_accelerator_package
-          libraries:
-            - whl: ../dist/*.whl
           environment_key: "serverless_wheel"
 
       environments:
