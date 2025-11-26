@@ -1,0 +1,9 @@
+artifacts:
+  migration_accelerator_package:
+    type: whl
+    build: |
+      cd "$PROJECT_ROOT"
+      poetry build
+    path: ../
+
+   

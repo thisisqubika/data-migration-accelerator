@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    snowflake_ingestion_job:
+      name: "snowflake_ingestion_job"
+
+      permissions: 
+        - level: CAN_MANAGE_RUN
+          group_name: migration-accelerator-devs
+
+        
+      tasks:
+        - task_key: snowflake_ingestion_task
+          python_wheel_task:
+            entry_point: snowpark-reader
+            package_name: migration_accelerator_package
+          environment_key: "serverless_wheel"
+
+      environments:
+        - environment_key: "serverless_wheel"
+          spec:
+            environment_version: "4"
+            dependencies:
+              - "../dist/*.whl"
+              
+      timeout_seconds: 3600
+      max_concurrent_runs: 1

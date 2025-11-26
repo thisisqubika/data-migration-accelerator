@@ -1,0 +1,25 @@
+variables:
+  catalog_name: 
+    description: "The Unity Catalog in which the project will be contained."
+    default: "qubika_partner_solutions"
+
+resources:
+  schemas:
+    migration_accelerator:
+      name: migration_accelerator
+      catalog_name: ${var.catalog_name}
+      comment: Contains the Unity Catalog Resources pertaining to the Databricks Governance Migration Agent Accelerator
+      grants: 
+        - principal: migration-accelerator-devs
+          privileges: 
+            - ALL_PRIVILEGES
+  
+  volumes:
+    snowflake_artifacts_raw:
+      name: snowflake_artifacts_raw
+      schema_name: migration_accelerator
+      catalog_name: ${var.catalog_name}
+      comment: Contains the metadata of the extracted Snowflake artifacts in a raw JSON format. 
+          
+
+
