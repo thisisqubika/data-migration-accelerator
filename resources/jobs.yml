@@ -11,7 +11,7 @@ resources:
       tasks:
         - task_key: snowflake_ingestion_task
           python_wheel_task:
-            entry_point: main
+            entry_point: snowpark-reader
             package_name: migration_accelerator_package
           environment_key: "serverless_wheel"
 
