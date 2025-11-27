@@ -8,3 +8,5 @@ include:
 targets:
   dev:
     default: true
+    presets:
+      tags: ${var.global_project_tag}
