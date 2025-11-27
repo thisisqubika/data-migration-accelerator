@@ -2,6 +2,7 @@ bundle:
   name: migration-accelerator
 
 include:
+  - tags.yml
   - resources/*.yml   
 
 targets:
