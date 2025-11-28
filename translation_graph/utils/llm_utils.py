@@ -1,5 +1,6 @@
 import os
 from typing import Dict, Any
+import time
 
 from config.ddl_config import create_node_llm, get_config
 
@@ -39,7 +40,6 @@ def test_llm_connection() -> Dict[str, Any]:
     }
 
     try:
-        import time
         start_time = time.time()
 
         llm = create_llm_for_node("smart_router")

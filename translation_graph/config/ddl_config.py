@@ -39,6 +39,24 @@ class DDLConfig:
                     "endpoint": "databricks-llama-4-maverick"
                 }
             },
+            "database_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "schemas_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
             "tables_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",
@@ -57,7 +75,79 @@ class DDLConfig:
                     "endpoint": "databricks-llama-4-maverick"
                 }
             },
-            "schemas_translator": {
+            "stages_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "streams_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "pipes_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "roles_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "grants_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "tags_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "comments_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "masking_policies_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "udfs_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
@@ -75,7 +165,25 @@ class DDLConfig:
                     "endpoint": "databricks-llama-4-maverick"
                 }
             },
-            "roles_translator": {
+            "sequences_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "file_formats_translator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.2,
+                "max_tokens": 4000,
+                "additional_params": {
+                    "endpoint": "databricks-llama-4-maverick"
+                }
+            },
+            "external_locations_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
