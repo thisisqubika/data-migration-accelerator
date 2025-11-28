@@ -16,11 +16,19 @@ translation_graph/
 │   └── *_prompts.py           # Prompt templates for each node
 ├── utils/
 │   ├── types.py               # Shared data types
-│   └── llm_utils.py           # LLM creation utilities
+│   ├── llm_utils.py           # LLM creation utilities
+│   └── file_processor.py      # File-based processing utilities
+├── docs/
+│   ├── DATABRICKS.md          # Databricks deployment guide
+│   └── README.md              # Documentation index
 ├── tests/
-│   └── test_graph.py          # Test suite
+│   └── integration/
+│       ├── run_example.py             # Basic example usage
+│       ├── databricks_job_notebook.py # Parameterized job notebook
+│       └── databricks_notebook_example.py  # Example Databricks notebook
 ├── graph_builder.py           # LangGraph construction
-├── run_example.py             # Example usage
+├── run_file_processor.py      # File-based processor entry point
+├── databricks_job.py          # Databricks job entry point
 └── requirements.txt           # Python dependencies
 ```
 
@@ -89,7 +97,62 @@ config = DDLConfig({
 
 ## Usage
 
-### Basic Example
+### File-Based Processing (Recommended)
+
+Process JSON files where each file contains a specific artifact type. The artifact type is determined from the filename (e.g., `tables.json`, `views.json`).
+
+```bash
+# Process a single file
+python run_file_processor.py tables.json --batch-size 10
+
+# Process multiple files
+python run_file_processor.py tables.json views.json schemas.json --batch-size 10
+
+# Save results to a file
+python run_file_processor.py tables.json --batch-size 10 --output results.json
+```
+
+**JSON File Structure:**
+Each JSON file should have a top-level key matching the artifact type:
+```json
+{
+  "tables": [
+    {"database_name": "...", "schema_name": "...", "table_name": "...", ...},
+    ...
+  ]
+}
+```
+
+**Filename conventions:**
+- `tables.json`, `table.json` → tables
+- `views.json`, `view.json` → views
+- `schemas.json`, `schema.json` → schemas
+- `procedures.json`, `procedure.json` → procedures
+- `roles.json`, `role.json` → roles
+- And similar patterns for other artifact types
+
+**Batching:**
+- Large files are automatically split into batches
+- Each batch is processed separately and results are aggregated
+- Default batch size is 10 artifacts per batch
+- Adjust with `--batch-size` parameter
+
+### Programmatic Usage
+
+```python
+from graph_builder import build_translation_graph
+from utils.file_processor import create_batches_from_file
+
+# Process a JSON file with batching
+graph = build_translation_graph()
+batches = create_batches_from_file("tables.json", batch_size=10)
+
+# Process all batches
+result = graph.run_batches(batches)
+print(result)
+```
+
+### Basic Example (Direct Batch)
 
 ```python
 from graph_builder import build_translation_graph
@@ -144,13 +207,43 @@ The system uses a hierarchical configuration system with:
 
 See `config/ddl_config.py` for detailed configuration options.
 
-## Testing
+## Testing and Examples
 
-Run the test suite:
+### Integration Tests
+
+Run the comprehensive integration test with example data:
 
 ```bash
-python -m pytest tests/test_graph.py -v
+# Run full workflow test with example JSON files
+python tests/integration/test_full_workflow.py
 ```
+
+This comprehensive test demonstrates:
+- Loading example JSON files from `tests/integration/example_data/`
+- Processing tables, views, and schemas through the translation graph
+- Real LLM-powered SQL DDL generation
+- Result validation and persistence
+
+### File Processor Example
+
+Process your own JSON files directly:
+
+```bash
+# Process JSON files with the file processor
+python run_file_processor.py tables.json --batch-size 10
+
+# Generate SQL files instead of JSON
+python databricks_job.py --input-files tables.json --output-format sql --output-path ./output/
+```
+
+### Example Data
+
+Sample JSON files are provided in `tests/integration/example_data/`:
+- `tables.json` - Sample table definitions (2 tables)
+- `views.json` - Sample view definitions (2 views)
+- `schemas.json` - Sample schema definitions (1 schema)
+
+See [tests/integration/README.md](tests/integration/README.md) for complete documentation.
 
 ## Development
 
@@ -170,8 +263,34 @@ The system includes comprehensive error handling:
 - Translation errors are captured and reported
 - Graceful degradation with error metadata
 
+## Databricks Deployment
+
+For using this translation graph in Databricks jobs and pipelines, see the [Databricks Deployment Guide](docs/DATABRICKS.md).
+
+### Quick Start for Databricks
+
+```python
+from translation_graph.databricks_job import process_translation_job
+
+result = process_translation_job(
+    input_files=["dbfs:/FileStore/data/tables.json"],
+    output_path="dbfs:/FileStore/results/results.json",
+    batch_size=10
+)
+```
+
+### Key Features for Databricks
+
+- **DBFS and Volume support**: Handles `dbfs:/` and `/Volumes/` paths automatically
+- **Batch processing**: Processes large files in configurable batches
+- **Job integration**: Ready-to-use entry points for Databricks jobs
+- **Pipeline support**: Compatible with Databricks Pipelines
+- **Unity Catalog**: Works with Unity Catalog Volumes
+
+See [docs/DATABRICKS.md](docs/DATABRICKS.md) for complete deployment instructions.
+
 ## Requirements
 
 - Python 3.7+
 - LangChain ecosystem
-- OpenAI API or Databricks endpoint access
+- Databricks endpoint access (for LLM calls)

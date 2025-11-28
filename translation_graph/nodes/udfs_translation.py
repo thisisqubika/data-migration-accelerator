@@ -1,39 +1,39 @@
-from prompts.schemas_prompts import SchemasPrompts
+from prompts.udfs_prompts import UDFsPrompts
 from utils.types import ArtifactBatch, TranslationResult
 from utils.llm_utils import create_llm_for_node
 
 
-def translate_schemas(batch: ArtifactBatch) -> TranslationResult:
+def translate_udfs(batch: ArtifactBatch) -> TranslationResult:
     """
-    Translate schema artifacts.
+    Translate Snowflake SQL UDF artifacts to Databricks Unity Catalog SQL UDFs.
 
     Args:
         batch: The artifact batch to translate
 
     Returns:
-        TranslationResult with translated schema DDL
+        TranslationResult with translated UDF DDL
     """
-    llm = create_llm_for_node("schemas_translator")
+    llm = create_llm_for_node("udfs_translator")
 
-    # Process each schema in the batch
+    # Process each UDF in the batch
     results = []
     errors = []
 
-    for schema_json in batch.items:
+    for udf_json in batch.items:
         try:
-            # Parse the schema JSON
+            # Parse the UDF JSON
             import json
-            schema_metadata = json.loads(schema_json)
+            udf_metadata = json.loads(udf_json)
 
-            # Create prompt with context and schema metadata
+            # Create prompt with context and UDF metadata
             context = {
                 "source_db": batch.context.get("source_db", "snowflake"),
                 "target_db": batch.context.get("target_db", "databricks")
             }
 
-            prompt = SchemasPrompts.create_prompt(
+            prompt = UDFsPrompts.create_prompt(
                 context=context,
-                schema_metadata=json.dumps(schema_metadata, indent=2)
+                function_metadata=json.dumps(udf_metadata, indent=2)
             )
 
             # Call the LLM to generate DDL
@@ -42,14 +42,14 @@ def translate_schemas(batch: ArtifactBatch) -> TranslationResult:
                 ddl_result = response.content if hasattr(response, 'content') else str(response)
                 results.append(ddl_result.strip())
             except Exception as e:
-                results.append(f"-- Error generating DDL for schema {schema_metadata.get('schema_name', 'unknown')}: {str(e)}")
-                errors.append(f"LLM error for schema {schema_metadata.get('schema_name', 'unknown')}: {str(e)}")
+                results.append(f"-- Error generating DDL for UDF {udf_metadata.get('function_name', 'unknown')}: {str(e)}")
+                errors.append(f"LLM error for UDF {udf_metadata.get('function_name', 'unknown')}: {str(e)}")
 
         except Exception as e:
-            errors.append(f"Error processing schema: {str(e)}")
+            errors.append(f"Error processing UDF: {str(e)}")
 
     return TranslationResult(
-        artifact_type="schemas",
+        artifact_type="udfs",
         results=results,
         errors=errors,
         metadata={"count": len(batch.items), "processed": len(results)}
