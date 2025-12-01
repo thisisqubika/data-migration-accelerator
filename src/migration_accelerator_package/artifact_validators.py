@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 from snowflake.snowpark import Session
 from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
-from databricks.sdk.runtime import dbutils
+from databricks.sdk.runtime import *
 
 class MetadataValidator:
     """
@@ -19,10 +19,9 @@ class MetadataValidator:
 
     def _load_extracted(self, filename: str) -> Dict[str, Any]:
         path = f"{self.volume_path}/{filename}"
-        with dbutils.fs.open(path) as f:
-            raw_bytes = f.read()
-        raw = raw_bytes.decode("utf-8")
+        raw = dbutils.fs.head(path, 50_000_000)
         return json.loads(raw)
+
 
 
     def load_all_artifacts(self) -> Dict[str, Dict[str, Any]]:
