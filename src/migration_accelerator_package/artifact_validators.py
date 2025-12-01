@@ -9,6 +9,20 @@ from snowflake.snowpark import Session
 from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
 from databricks.sdk.runtime import *
 
+def normalize_column(col: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalize column metadata for comparison.
+    Only keeps the essential fields needed for correctness validation.
+    """
+    col = {k.lower(): v for k, v in col.items()}
+
+    return {
+        "column_name": col.get("column_name"),
+        "data_type": col.get("data_type"),
+        "is_nullable": col.get("is_nullable"),       
+    }
+
+
 class MetadataValidator:
     """
     Validates completeness and correctness of extracted Snowflake metadata.
@@ -100,19 +114,6 @@ class MetadataValidator:
             }
 
         return completeness
-
-    def normalize_column(col: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Normalize column metadata for comparison.
-        Only keeps the essential fields needed for correctness validation.
-        """
-        col = {k.lower(): v for k, v in col.items()}
-
-        return {
-            "column_name": col.get("column_name"),
-            "data_type": col.get("data_type"),
-            "is_nullable": col.get("is_nullable"),
-        }
 
     def validate_table_definition(self, db, schema, extracted_table: Dict[str, Any]) -> Dict[str, Any]:
         table_name = extracted_table["table_name"]
