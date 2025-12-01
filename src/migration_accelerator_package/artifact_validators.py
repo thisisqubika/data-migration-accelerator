@@ -19,8 +19,11 @@ class MetadataValidator:
 
     def _load_extracted(self, filename: str) -> Dict[str, Any]:
         path = f"{self.volume_path}/{filename}"
-        raw = dbutils.fs.read(path)  # full read
+        with dbutils.fs.open(path) as f:
+            raw_bytes = f.read()
+        raw = raw_bytes.decode("utf-8")
         return json.loads(raw)
+
 
     def load_all_artifacts(self) -> Dict[str, Dict[str, Any]]:
         extracted = {}
