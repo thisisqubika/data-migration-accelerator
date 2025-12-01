@@ -101,21 +101,41 @@ class MetadataValidator:
 
         return completeness
 
+    def normalize_column(col: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Normalize column metadata for comparison.
+        Only keeps the essential fields needed for correctness validation.
+        """
+        col = {k.lower(): v for k, v in col.items()}
+
+        return {
+            "column_name": col.get("column_name"),
+            "data_type": col.get("data_type"),
+            "is_nullable": col.get("is_nullable"),
+        }
+
     def validate_table_definition(self, db, schema, extracted_table: Dict[str, Any]) -> Dict[str, Any]:
         table_name = extracted_table["table_name"]
 
         query = f"""
-        SELECT column_name, data_type, is_nullable 
+        SELECT column_name, data_type, is_nullable,
+            character_maximum_length, numeric_precision, numeric_scale,
+            column_default, comment
         FROM {db}.information_schema.columns
         WHERE table_schema = '{schema}'
         AND table_name = '{table_name}'
         ORDER BY ordinal_position
         """
-        sf_columns = [dict(row.as_dict()) for row in self.session.sql(query).collect()]
 
-        extracted_columns = extracted_table.get("columns", [])
+        # Normalize Snowflake columns
+        sf_columns_raw = [dict(row.as_dict()) for row in self.session.sql(query).collect()]
+        sf_columns = [normalize_column(col) for col in sf_columns_raw]
 
-        # Compute correctness percentage
+        # Normalize extracted columns
+        extracted_columns_raw = extracted_table.get("columns", [])
+        extracted_columns = [normalize_column(col) for col in extracted_columns_raw]
+
+        # Compute correctness statistics
         total = max(len(sf_columns), len(extracted_columns), 1)
         matches = sum(1 for sf, ex in zip(sf_columns, extracted_columns) if sf == ex)
         correctness_pct = round((matches / total) * 100, 2)
@@ -131,6 +151,7 @@ class MetadataValidator:
             "snowflake": sf_columns,
             "extracted": extracted_columns
         }
+
 
 
     def validate_view_definition(self, db, schema, extracted_view: Dict[str, Any]) -> Dict[str, Any]:
