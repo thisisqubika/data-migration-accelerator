@@ -24,3 +24,5 @@ def translate_external_locations(batch: ArtifactBatch) -> TranslationResult:
         metadata={"count": len(batch.items)}
     )
 
+
+
