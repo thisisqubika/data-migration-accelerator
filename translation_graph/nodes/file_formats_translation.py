@@ -24,3 +24,5 @@ def translate_file_formats(batch: ArtifactBatch) -> TranslationResult:
         metadata={"count": len(batch.items)}
     )
 
+
+

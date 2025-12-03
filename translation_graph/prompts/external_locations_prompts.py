@@ -32,3 +32,5 @@ Provide only the generated CREATE EXTERNAL LOCATION SQL statement, no explanatio
         """Create external location translation system prompt."""
         return cls.system_prompt(**kwargs)
 
+
+
