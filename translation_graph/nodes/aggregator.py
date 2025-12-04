@@ -13,15 +13,7 @@ def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
         *results: Variable number of TranslationResult objects
 
     Returns:
-        Dictionary with merged results:
-        {
-            "tables": [...],
-            "views": [...],
-            "schemas": [...],
-            "procedures": [...],
-            "roles": [...],
-            "metadata": {...}
-        }
+        Dictionary with merged results including all artifact types
     """
     obs = get_observability()
     metrics = obs.get_metrics() if obs else None
@@ -30,25 +22,25 @@ def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
         metrics.start_stage("aggregate_translations", {"result_count": len(results)})
     
     try:
-        # Initialize the merged structure
-        merged = {
-            "tables": [],
-            "views": [],
-            "schemas": [],
-            "procedures": [],
-            "roles": [],
-            "metadata": {
-                "total_results": 0,
-                "errors": [],
-                "processing_stats": {}
-            }
+        all_artifact_types = {
+            "databases", "schemas", "tables", "views", "stages", "external_locations",
+            "streams", "pipes", "roles", "grants", "tags", "comments",
+            "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+        }
+        
+        merged = {artifact_type: [] for artifact_type in all_artifact_types}
+        merged["metadata"] = {
+            "total_results": 0,
+            "errors": [],
+            "processing_stats": {}
         }
 
-        # Aggregate results by artifact type
         for result in results:
             artifact_type = result.artifact_type
             if artifact_type in merged:
                 merged[artifact_type].extend(result.results)
+            else:
+                merged[artifact_type] = result.results
 
             # Collect errors
             if result.errors:
