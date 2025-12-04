@@ -131,6 +131,18 @@ class SnowparkObjectReader:
         if isinstance(tables_reader, TablesReader):
             return tables_reader.read_table_data(table_name, limit)
         return []
+        
+    def get_roles(self) -> List[Dict[str, Any]]:
+        """Get all custom roles."""
+        return self._readers[ArtifactType.ROLES].read()
+
+    def get_grants_privileges(self) -> List[Dict[str, Any]]:
+        """Get all privilege grants."""
+        return self._readers[ArtifactType.GRANTS_PRIVILEGES].read()
+
+    def get_grants_hierarchy(self) -> List[Dict[str, Any]]:
+        """Get all role hierarchy grants."""
+        return self._readers[ArtifactType.GRANTS_HIERARCHY].read()
     
     def get_all_objects(self) -> Dict[str, Any]:
         """Get all database objects in one call using artifact readers."""
@@ -198,6 +210,9 @@ class SnowparkObjectReader:
             ArtifactType.TASKS: ArtifactFileName.TASKS,
             ArtifactType.STREAMS: ArtifactFileName.STREAMS,
             ArtifactType.PIPES: ArtifactFileName.PIPES,
+            ArtifactType.ROLES: ArtifactFileName.ROLES,
+            ArtifactType.GRANTS_PRIVILEGES: ArtifactFileName.GRANTS_PRIVILEGES,
+            ArtifactType.GRANTS_HIERARCHY: ArtifactFileName.GRANTS_HIERARCHY
         }
         
         saved_files = []

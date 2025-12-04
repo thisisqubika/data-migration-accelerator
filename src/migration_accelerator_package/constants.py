@@ -23,6 +23,9 @@ class ArtifactType(Enum):
     TASKS = "tasks"
     STREAMS = "streams"
     PIPES = "pipes"
+    ROLES = "roles"
+    GRANTS_PRIVILEGES = "grants_privileges"
+    GRANTS_HIERARCHY = "grants_hierarchy"
 
 class ArtifactFileName(Enum):
     """Enumeration of output file names for each artifact type."""
@@ -36,3 +39,6 @@ class ArtifactFileName(Enum):
     TASKS = "tasks.json"
     STREAMS = "streams.json"
     PIPES = "pipelines.json"  # pipes saved as pipelines.json
+    ROLES = "roles.json"
+    GRANTS_PRIVILEGES = "grants_privileges.json"
+    GRANTS_HIERARCHY = "grants_hierarchy.json"

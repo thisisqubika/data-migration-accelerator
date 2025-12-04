@@ -224,6 +224,87 @@ class PipesReader(ArtifactReader):
         result = self.session.sql(query).collect()
         return self._normalize_rows(result)
 
+class RolesReader(ArtifactReader):
+    """Reader for Snowflake custom roles."""
+    # System roles excluded from migration
+    SYSTEM_ROLES = {
+        'SYSADMIN', 'USERADMIN', 'SECURITYADMIN',
+        'ACCOUNTADMIN', 'PUBLIC', 'ORGADMIN'
+    }
+
+    def read(self) -> List[Dict[str, Any]]:
+        """
+        Extract all custom roles from Snowflake.
+        """
+        query = "SHOW ROLES"
+        result = self.session.sql(query).collect()
+        
+        # Normalize and filter
+        all_roles = self._normalize_rows(result)
+        custom_roles = [
+            role for role in all_roles 
+            if role.get('name', '').upper() not in self.SYSTEM_ROLES
+        ]
+        
+        return custom_roles
+
+class GrantsPrivilegesReader(ArtifactReader):
+    """
+    Reader for direct privileges granted to roles.
+    """
+    
+    def read(self) -> List[Dict[str, Any]]:
+        """
+        Extract all direct privileges for custom roles.
+        """
+        roles_reader = RolesReader(self.session, self.database, self.schema)
+        custom_roles = roles_reader.read()
+        
+        all_privileges = []
+        
+        for role in custom_roles:
+            role_name = role.get('name')
+            
+            query = f"SHOW GRANTS TO ROLE {role_name}"
+            result = self.session.sql(query).collect()
+                
+            for row in result:
+                grant_dict = self._normalize_keys(dict(row.as_dict()))    
+                # Add role context for reference
+                grant_dict['role_name'] = role_name
+                all_privileges.append(grant_dict)
+
+        return all_privileges
+
+class GrantsHierarchyReader(ArtifactReader):
+    """
+    Reader for role-to-role inheritance (hierarchy).
+    """
+    
+    def read(self) -> List[Dict[str, Any]]:
+        """
+        Extract role hierarchy relationships for custom roles.
+        """
+        roles_reader = RolesReader(self.session, self.database, self.schema)
+        custom_roles = roles_reader.read()
+        
+        all_hierarchy = []
+        
+        for role in custom_roles:
+            role_name = role.get('name')
+            
+            query = f"SHOW GRANTS OF ROLE {role_name}"
+            result = self.session.sql(query).collect()
+                    
+            for row in result:
+                grant_dict = self._normalize_keys(dict(row.as_dict()))
+                        
+                if grant_dict.get('granted_to') == 'ROLE': #User Grants excluded
+                    grant_dict['parent_role'] = role_name               
+                    all_hierarchy.append(grant_dict)
+            
+        return all_hierarchy
+
 
 class ArtifactReaderFactory:
     """Factory for creating artifact readers."""
@@ -239,6 +320,9 @@ class ArtifactReaderFactory:
         ArtifactType.TASKS: TasksReader,
         ArtifactType.STREAMS: StreamsReader,
         ArtifactType.PIPES: PipesReader,
+        ArtifactType.ROLES: RolesReader,
+        ArtifactType.GRANTS_PRIVILEGES: GrantsPrivilegesReader,
+        ArtifactType.GRANTS_HIERARCHY: GrantsHierarchyReader
     }
     
     @classmethod
