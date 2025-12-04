@@ -23,6 +23,8 @@ from nodes.file_formats_translation import translate_file_formats
 from nodes.external_locations_translation import translate_external_locations
 from nodes.aggregator import aggregate_translations
 from utils.types import ArtifactBatch, TranslationResult
+from utils.observability import initialize, finalize, get_observability
+from utils.logger import LogLevel
 
 
 class TranslationState(TypedDict):
@@ -204,7 +206,20 @@ def route_to_translation_node(state: TranslationState) -> str:
 
 
 class TranslationGraph:
-    def __init__(self):
+    def __init__(self, run_id: Optional[str] = None, log_level: LogLevel = LogLevel.INFO, log_file: Optional[str] = None):
+        """
+        Initialize translation graph with observability.
+        
+        Args:
+            run_id: Unique identifier for this run
+            log_level: Minimum log level
+            log_file: Optional path to log file
+        """
+        # Initialize observability
+        self.obs = initialize(run_id=run_id, log_level=log_level, log_file=log_file)
+        self.logger = self.obs.get_logger("translation_graph")
+        self.logger.info("Translation graph initialized", context={"run_id": run_id})
+        
         # Create the StateGraph
         self.graph = StateGraph(TranslationState)
 
@@ -277,16 +292,39 @@ class TranslationGraph:
 
     def run(self, batch: ArtifactBatch) -> Dict[str, Any]:
         """Process a single batch through the translation graph."""
-        initial_state: TranslationState = {
-            "batch": batch,
-            "results": [],
-            "final_result": None,
-            "errors": [],
-            "target_node": None
-        }
+        self.logger.info("Starting translation graph execution", context={
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+        
+        try:
+            initial_state: TranslationState = {
+                "batch": batch,
+                "results": [],
+                "final_result": None,
+                "errors": [],
+                "target_node": None
+            }
 
-        final_state = self.compiled_graph.invoke(initial_state)
-        return final_state["final_result"] or {}
+            final_state = self.compiled_graph.invoke(initial_state)
+            result = final_state["final_result"] or {}
+            
+            # Add observability summary to results
+            summary = finalize()
+            result["observability"] = summary
+            
+            self.logger.info("Translation graph execution completed", context={
+                "artifact_type": batch.artifact_type,
+                "success": True
+            })
+            
+            return result
+        except Exception as e:
+            self.logger.error("Translation graph execution failed", context={
+                "artifact_type": batch.artifact_type
+            }, error=str(e))
+            summary = finalize()
+            raise
 
     def run_batches(self, batches: List[ArtifactBatch]) -> Dict[str, Any]:
         """
@@ -298,6 +336,8 @@ class TranslationGraph:
         Returns:
             Aggregated translation results
         """
+        self.logger.info("Starting batch processing", context={"batch_count": len(batches)})
+        
         all_results = []
 
         for batch in batches:
@@ -338,9 +378,13 @@ class TranslationGraph:
                         merged_result["metadata"]["total_results"] += result["metadata"].get("total_results", 0)
                         merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
                         merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
+                    elif key == "observability":
+                        # Keep only the last observability summary
+                        merged_result["observability"] = value
                     elif key in merged_result:
                         merged_result[key].extend(value)
 
+            self.logger.info("Batch processing completed", context={"total_batches": len(batches)})
             return merged_result
 
         return {
@@ -352,5 +396,20 @@ class TranslationGraph:
         }
 
 
-def build_translation_graph() -> TranslationGraph:
-    return TranslationGraph()
+def build_translation_graph(
+    run_id: Optional[str] = None,
+    log_level: LogLevel = LogLevel.INFO,
+    log_file: Optional[str] = None
+) -> TranslationGraph:
+    """
+    Build translation graph with observability.
+    
+    Args:
+        run_id: Unique identifier for this run
+        log_level: Minimum log level
+        log_file: Optional path to log file
+        
+    Returns:
+        TranslationGraph instance
+    """
+    return TranslationGraph(run_id=run_id, log_level=log_level, log_file=log_file)
