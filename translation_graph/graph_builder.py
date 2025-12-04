@@ -22,6 +22,7 @@ from nodes.sequences_translation import translate_sequences
 from nodes.file_formats_translation import translate_file_formats
 from nodes.external_locations_translation import translate_external_locations
 from nodes.aggregator import aggregate_translations
+from nodes.syntax_evaluation import evaluate_batch
 from utils.types import ArtifactBatch, TranslationResult
 
 
@@ -32,6 +33,7 @@ class TranslationState(TypedDict):
     final_result: Optional[Dict[str, Any]]
     errors: List[str]
     target_node: Optional[str]
+    failed_batches: List[Dict[str, Any]]
 
 
 def router_node(state: TranslationState) -> TranslationState:
@@ -179,6 +181,45 @@ def translate_file_formats_node(state: TranslationState) -> TranslationState:
     return {**state, "results": state["results"] + [result]}
 
 
+def evaluation_node(state: TranslationState) -> TranslationState:
+    """
+    Evaluate the last translation result for SQL syntax validity.
+    
+    Runs after each translation node to check if the SQL syntax is valid.
+    Always persists validation results to a file.
+    """
+    if not state["batch"] or not state["results"]:
+        return state
+    
+    last_result = state["results"][-1]
+    all_valid, persisted_file, validation_result = evaluate_batch(state["batch"], last_result)
+    
+    failed_batches = state.get("failed_batches", [])
+    
+    if not all_valid:
+        failed_batch_info = {
+            "batch": {
+                "artifact_type": state["batch"].artifact_type,
+                "items": state["batch"].items,
+                "context": state["batch"].context
+            },
+            "translation_result": {
+                "artifact_type": last_result.artifact_type,
+                "results": last_result.results,
+                "errors": last_result.errors,
+                "metadata": last_result.metadata
+            },
+            "validation_result": validation_result.model_dump() if hasattr(validation_result, 'model_dump') else validation_result,
+            "persisted_file": persisted_file
+        }
+        failed_batches = failed_batches + [failed_batch_info]
+    
+    return {
+        **state,
+        "failed_batches": failed_batches
+    }
+
+
 def aggregator_node(state: TranslationState) -> TranslationState:
     """Aggregate all translation results into final output."""
     if not state["results"]:
@@ -186,11 +227,13 @@ def aggregator_node(state: TranslationState) -> TranslationState:
             "metadata": {
                 "total_results": 0,
                 "errors": state["errors"],
-                "processing_stats": {}
+                "processing_stats": {},
+                "failed_batches_count": len(state.get("failed_batches", []))
             }
         }
     else:
-        final_result = aggregate_translations(*state["results"])
+        failed_batches = state.get("failed_batches", [])
+        final_result = aggregate_translations(*state["results"], failed_batches=failed_batches)
 
     return {**state, "final_result": final_result}
 
@@ -227,6 +270,7 @@ class TranslationGraph:
         self.graph.add_node("translate_procedures", translate_procedures_node)
         self.graph.add_node("translate_sequences", translate_sequences_node)
         self.graph.add_node("translate_file_formats", translate_file_formats_node)
+        self.graph.add_node("evaluation", evaluation_node)
         self.graph.add_node("aggregator", aggregator_node)
 
         # Set entry point
@@ -257,7 +301,7 @@ class TranslationGraph:
             }
         )
 
-        # Add edges from all translation nodes to aggregator
+        # Add edges from all translation nodes to evaluation, then to aggregator
         translation_nodes = [
             "translate_databases", "translate_schemas", "translate_tables", "translate_views",
             "translate_stages", "translate_external_locations", "translate_streams", "translate_pipes",
@@ -267,7 +311,9 @@ class TranslationGraph:
         ]
 
         for node in translation_nodes:
-            self.graph.add_edge(node, "aggregator")
+            self.graph.add_edge(node, "evaluation")
+        
+        self.graph.add_edge("evaluation", "aggregator")
 
         # Add edge from aggregator to END
         self.graph.add_edge("aggregator", END)
@@ -282,7 +328,8 @@ class TranslationGraph:
             "results": [],
             "final_result": None,
             "errors": [],
-            "target_node": None
+            "target_node": None,
+            "failed_batches": []
         }
 
         final_state = self.compiled_graph.invoke(initial_state)

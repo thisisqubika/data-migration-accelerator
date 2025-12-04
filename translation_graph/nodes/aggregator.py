@@ -1,8 +1,8 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from utils.types import TranslationResult
 
 
-def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
+def aggregate_translations(*results: TranslationResult, failed_batches: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """
     Aggregate multiple translation results into a final merged structure.
 
@@ -30,7 +30,8 @@ def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
     merged["metadata"] = {
         "total_results": 0,
         "errors": [],
-        "processing_stats": {}
+        "processing_stats": {},
+        "failed_batches_count": len(failed_batches) if failed_batches else 0
     }
 
     for result in results:
