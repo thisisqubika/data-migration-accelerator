@@ -26,3 +26,5 @@ def translate_external_locations(batch: ArtifactBatch) -> TranslationResult:
 
 
 
+
+

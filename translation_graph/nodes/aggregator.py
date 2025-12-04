@@ -1,16 +1,17 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from utils.types import TranslationResult
 from utils.error_handler import handle_node_error
 from utils.observability import get_observability
 
 
 @handle_node_error("aggregate_translations")
-def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
+def aggregate_translations(*results: TranslationResult, failed_batches: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """
     Aggregate multiple translation results into a final merged structure.
 
     Args:
         *results: Variable number of TranslationResult objects
+        failed_batches: Optional list of failed batch dictionaries
 
     Returns:
         Dictionary with merged results including all artifact types
@@ -32,7 +33,8 @@ def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:
         merged["metadata"] = {
             "total_results": 0,
             "errors": [],
-            "processing_stats": {}
+            "processing_stats": {},
+            "failed_batches_count": len(failed_batches) if failed_batches else 0
         }
 
         for result in results:
