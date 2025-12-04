@@ -271,8 +271,10 @@ class GrantsPrivilegesReader(ArtifactReader):
             for row in result:
                 grant_dict = self._normalize_keys(dict(row.as_dict()))    
                 # Add role context for reference
-                grant_dict['role_name'] = role_name
-                all_privileges.append(grant_dict)
+                granted_on = grant_dict.get("granted_on", "").upper()
+                if granted_on not in ["ROLE", "ACCOUNT"]:
+                    grant_dict['role_name'] = role_name
+                    all_privileges.append(grant_dict)
 
         return all_privileges
 
