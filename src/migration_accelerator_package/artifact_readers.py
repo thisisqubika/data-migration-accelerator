@@ -307,6 +307,33 @@ class GrantsHierarchyReader(ArtifactReader):
             
         return all_hierarchy
 
+class GrantsFutureReader(ArtifactReader):
+    """
+    Reader for future grants.
+    """
+    
+    def read(self) -> List[Dict[str, Any]]:
+        """
+        Extract future grants for custom roles.
+        """
+        roles_reader = RolesReader(self.session, self.database, self.schema)
+        custom_roles = roles_reader.read()
+        
+        all_future = []
+        
+        for role in custom_roles:
+            role_name = role.get('name')
+            
+            query = f"SHOW FUTURE GRANTS TO ROLE {role_name}"
+            result = self.session.sql(query).collect()
+                    
+            for row in result:
+                grant_dict = self._normalize_keys(dict(row.as_dict()))    
+                # Add role context for reference
+                grant_dict['role_name'] = role_name
+                all_future.append(grant_dict)
+        
+        return all_future
 
 class ArtifactReaderFactory:
     """Factory for creating artifact readers."""
@@ -324,7 +351,8 @@ class ArtifactReaderFactory:
         ArtifactType.PIPES: PipesReader,
         ArtifactType.ROLES: RolesReader,
         ArtifactType.GRANTS_PRIVILEGES: GrantsPrivilegesReader,
-        ArtifactType.GRANTS_HIERARCHY: GrantsHierarchyReader
+        ArtifactType.GRANTS_HIERARCHY: GrantsHierarchyReader,
+        ArtifactType.GRANTS_FUTURE: GrantsFutureReader
     }
     
     @classmethod

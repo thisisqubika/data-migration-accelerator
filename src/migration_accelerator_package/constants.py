@@ -26,6 +26,7 @@ class ArtifactType(Enum):
     ROLES = "roles"
     GRANTS_PRIVILEGES = "grants_privileges"
     GRANTS_HIERARCHY = "grants_hierarchy"
+    GRANTS_FUTURE = "grants_future"
 
 class ArtifactFileName(Enum):
     """Enumeration of output file names for each artifact type."""
@@ -42,3 +43,4 @@ class ArtifactFileName(Enum):
     ROLES = "roles.json"
     GRANTS_PRIVILEGES = "grants_privileges.json"
     GRANTS_HIERARCHY = "grants_hierarchy.json"
+    GRANTS_FUTURE = "grants_future.json"

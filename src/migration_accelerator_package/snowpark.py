@@ -131,7 +131,7 @@ class SnowparkObjectReader:
         if isinstance(tables_reader, TablesReader):
             return tables_reader.read_table_data(table_name, limit)
         return []
-        
+
     def get_roles(self) -> List[Dict[str, Any]]:
         """Get all custom roles."""
         return self._readers[ArtifactType.ROLES].read()
@@ -143,6 +143,10 @@ class SnowparkObjectReader:
     def get_grants_hierarchy(self) -> List[Dict[str, Any]]:
         """Get all role hierarchy grants."""
         return self._readers[ArtifactType.GRANTS_HIERARCHY].read()
+
+    def get_grants_future(self) -> List[Dict[str, Any]]:
+        """Get all future grants."""
+        return self._readers[ArtifactType.GRANTS_FUTURE].read()
     
     def get_all_objects(self) -> Dict[str, Any]:
         """Get all database objects in one call using artifact readers."""
@@ -212,7 +216,8 @@ class SnowparkObjectReader:
             ArtifactType.PIPES: ArtifactFileName.PIPES,
             ArtifactType.ROLES: ArtifactFileName.ROLES,
             ArtifactType.GRANTS_PRIVILEGES: ArtifactFileName.GRANTS_PRIVILEGES,
-            ArtifactType.GRANTS_HIERARCHY: ArtifactFileName.GRANTS_HIERARCHY
+            ArtifactType.GRANTS_HIERARCHY: ArtifactFileName.GRANTS_HIERARCHY,
+            ArtifactType.GRANTS_FUTURE: ArtifactFileName.GRANTS_FUTURE
         }
         
         saved_files = []
@@ -368,6 +373,10 @@ def main():
                 'tasks': len(objects['tasks']),
                 'streams': len(objects['streams']),
                 'pipes': len(objects['pipes']),
+                'roles': len(objects['roles']),
+                'grants_privileges': len(objects['grants_privileges']),
+                'grants_hierarchy': len(objects['grants_hierarchy']),
+                'grants_future': len(objects['grants_future'])
             }
         }, indent=2))
         
