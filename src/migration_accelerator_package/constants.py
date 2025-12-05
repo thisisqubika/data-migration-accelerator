@@ -44,3 +44,4 @@ class ArtifactFileName(Enum):
     GRANTS_PRIVILEGES = "grants_privileges.json"
     GRANTS_HIERARCHY = "grants_hierarchy.json"
     GRANTS_FUTURE = "grants_future.json"
+    GRANTS_FLATTENED = "grants_flattened.json"

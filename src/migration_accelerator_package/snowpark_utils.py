@@ -36,3 +36,23 @@ def get_uc_volume_path() -> str:
         f"{UnityCatalogConfig.SCHEMA.value}/"
         f"{UnityCatalogConfig.RAW_VOLUME.value}"
     )
+
+def load_json_from_volume(volume_path: str, filename: str) -> dict:
+    """
+    Load a JSON artifact file from a Unity Catalog volume using dbutils.fs.head(),
+    which is compatible with all cluster types including serverless compute.
+    Args:
+        volume_path: Base UC volume path
+        filename: JSON file name (e.g., 'roles.json')
+
+    Returns:
+        Parsed JSON dict. Returns {} if file missing or invalid.
+    """
+    path = f"{volume_path}/{filename}"
+
+    try:
+        raw = dbutils.fs.head(path, 50_000_000)  # 50 MB max
+        return json.loads(raw)
+    except Exception as e:
+        print(f"  ⚠ Warning: Could not load {filename}: {e}")
+        return {}

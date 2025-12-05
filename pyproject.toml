@@ -23,5 +23,6 @@ build-backend = "poetry.core.masonry.api"
 migration-accelerator = "migration_accelerator_package.main:main"
 snowpark-reader = "migration_accelerator_package.snowpark:main"
 snowflake-validator = "migration_accelerator_package.ingestion_validation:main"
+grant-transformer = "migration_accelerator_package.grant_transformation:main"
 
 
