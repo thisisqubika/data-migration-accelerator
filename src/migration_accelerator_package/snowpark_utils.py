@@ -2,6 +2,7 @@
 Utility functions shared across ingestion + validation entrypoints.
 """
 
+import json
 import os
 from databricks.sdk.runtime import dbutils
 from migration_accelerator_package.constants import SnowflakeConfig, UnityCatalogConfig
