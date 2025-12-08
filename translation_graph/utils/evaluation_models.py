@@ -32,3 +32,40 @@ class BatchSyntaxValidationResult(BaseModel):
     )
 
 
+class SQLIssue(BaseModel):
+    """Represents a syntax error found during SQL evaluation."""
+    description: str = Field(
+        description="Description of the syntax error"
+    )
+    line_number: Optional[int] = Field(
+        default=None,
+        description="Line number where the error occurs (optional)"
+    )
+    suggestion: Optional[str] = Field(
+        default=None,
+        description="Suggestion for fixing the error (optional)"
+    )
+
+
+class SQLEvaluationResult(BaseModel):
+    """Result of LLM-based SQL syntax evaluation for a single statement."""
+    syntax_valid: bool = Field(
+        description="Whether the SQL syntax is valid for Databricks"
+    )
+    error_message: Optional[str] = Field(
+        default=None,
+        description="Error message if syntax is invalid, None if valid"
+    )
+    issues: List[SQLIssue] = Field(
+        default_factory=list,
+        description="List of syntax errors found during evaluation"
+    )
+
+
+class BatchSQLEvaluationResult(BaseModel):
+    """Result of LLM-based SQL evaluation for a batch of statements."""
+    results: List[SQLEvaluationResult] = Field(
+        description="List of evaluation results, one per SQL statement in order"
+    )
+
+

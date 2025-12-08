@@ -18,7 +18,6 @@ from nodes.comments_translation import translate_comments
 from nodes.masking_policies_translation import translate_masking_policies
 from nodes.grants_translation import translate_grants
 from nodes.udfs_translation import translate_udfs
-from nodes.sequences_translation import translate_sequences
 from nodes.file_formats_translation import translate_file_formats
 from nodes.external_locations_translation import translate_external_locations
 from nodes.aggregator import aggregate_translations
@@ -268,7 +267,6 @@ class TranslationGraph:
         self.graph.add_node("translate_masking_policies", translate_masking_policies_node)
         self.graph.add_node("translate_udfs", translate_udfs_node)
         self.graph.add_node("translate_procedures", translate_procedures_node)
-        self.graph.add_node("translate_sequences", translate_sequences_node)
         self.graph.add_node("translate_file_formats", translate_file_formats_node)
         self.graph.add_node("evaluation", evaluation_node)
         self.graph.add_node("aggregator", aggregator_node)
@@ -296,7 +294,6 @@ class TranslationGraph:
                 "masking_policies": "translate_masking_policies",
                 "udfs": "translate_udfs",
                 "procedures": "translate_procedures",
-                "sequences": "translate_sequences",
                 "file_formats": "translate_file_formats",
             }
         )
@@ -307,7 +304,7 @@ class TranslationGraph:
             "translate_stages", "translate_external_locations", "translate_streams", "translate_pipes",
             "translate_roles", "translate_grants", "translate_tags", "translate_comments",
             "translate_masking_policies", "translate_udfs", "translate_procedures",
-            "translate_sequences", "translate_file_formats"
+            "translate_file_formats"
         ]
 
         for node in translation_nodes:
