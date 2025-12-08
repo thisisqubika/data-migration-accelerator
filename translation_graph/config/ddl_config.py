@@ -204,6 +204,16 @@ class DDLConfig:
             "compress_output": False,
             "base_dir": "./ddl_output",
             "timestamp_format": "%Y%m%d_%H%M%S"
+        },
+        "observability": {
+            "log_level": "INFO",
+            "log_file": None,
+            "enable_metrics": True,
+            "retry": {
+                "max_retries": 3,
+                "retry_delay": 1.0,
+                "backoff_factor": 2.0
+            }
         }
     }
 
@@ -217,7 +227,11 @@ class DDLConfig:
         "DDL_OUTPUT_FORMAT": "output.format",
         "DDL_OUTPUT_DIR": "output.base_dir",
         "DDL_INCLUDE_METADATA": ("output.include_metadata", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
-        "DDL_COMPRESS_OUTPUT": ("output.compress_output", lambda x: x.lower() in ('true', '1', 'yes', 'on'))
+        "DDL_COMPRESS_OUTPUT": ("output.compress_output", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
+        "DDL_LOG_LEVEL": "observability.log_level",
+        "DDL_LOG_FILE": "observability.log_file",
+        "DDL_MAX_RETRIES": ("observability.retry.max_retries", int),
+        "DDL_RETRY_DELAY": ("observability.retry.retry_delay", float)
     }
 
     def __init__(self, config_overrides: Optional[Dict[str, Any]] = None):
