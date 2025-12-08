@@ -211,7 +211,8 @@ class DDLConfig:
         "validation": {
             "enabled": True,
             "report_all_results": False,  # If true, reports both compliant and non-compliant statements
-            "skip_unsupported_artifacts": ["procedures", "sequences"],  # Artifacts SQLGlot doesn't support
+            "skip_unsupported_artifacts": [],  # Artifacts to skip validation entirely
+            "llm_validated_artifacts": ["procedures", "pipes"],  # Artifacts that use LLM validation instead of SQLGlot
             "persist_compliant_batches": False  # Whether to persist batches with all compliant statements
         },
         "output": {

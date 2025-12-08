@@ -9,6 +9,13 @@ import sqlglot
 
 from utils.types import ArtifactBatch, TranslationResult
 from utils.evaluation_models import SQLSyntaxValidationResult, BatchSyntaxValidationResult
+from utils.llm_utils import create_llm_for_node
+from utils.llm_evaluation_utils import (
+    create_structured_llm,
+    get_evaluation_batch_size,
+    evaluate_batch_sql_statements,
+    should_skip_sql_statement as llm_should_skip
+)
 from config.ddl_config import get_config
 
 # Set up logger for this module
@@ -21,10 +28,17 @@ def get_validation_config() -> dict:
     return config.get("validation", {})
 
 
+def should_use_llm_validation(artifact_type: str) -> bool:
+    """Check if an artifact type should use LLM validation instead of SQLGlot."""
+    validation_config = get_validation_config()
+    llm_validated_artifacts = validation_config.get("llm_validated_artifacts", ["procedures", "pipes"])
+    return artifact_type in llm_validated_artifacts
+
+
 def should_skip_artifact_validation(artifact_type: str) -> bool:
     """Check if an artifact type should be skipped for validation."""
     validation_config = get_validation_config()
-    skip_artifacts = validation_config.get("skip_unsupported_artifacts", ["procedures", "sequences"])
+    skip_artifacts = validation_config.get("skip_unsupported_artifacts", [])
     return artifact_type in skip_artifacts
 
 
@@ -234,8 +248,6 @@ def validate_sql_syntax(sql_statement: str, dialect: str = "databricks") -> Tupl
         ]
 
 
-
-
 def evaluate_sql_with_syntax_validator(
     sql_statement: str
 ) -> SQLSyntaxValidationResult:
@@ -276,6 +288,118 @@ def should_skip_sql_statement(sql_statement: str) -> bool:
         return True
     
     return False
+
+
+def _convert_llm_result_to_validation_result(
+    sql_statement: str,
+    eval_result: Optional[Any]
+) -> SQLSyntaxValidationResult:
+    """
+    Convert LLM evaluation result to syntax validation result.
+
+    Args:
+        sql_statement: Original SQL statement
+        eval_result: LLM evaluation result or None
+
+    Returns:
+        SQLSyntaxValidationResult
+    """
+    cleaned_sql = clean_sql_statement(sql_statement)
+    
+    if eval_result is None:
+        return SQLSyntaxValidationResult(
+            sql_statement=cleaned_sql,
+            syntax_valid=True,
+            error_message=None
+        )
+    
+    return SQLSyntaxValidationResult(
+        sql_statement=cleaned_sql,
+        syntax_valid=eval_result.syntax_valid,
+        error_message=eval_result.error_message
+    )
+
+
+def _process_llm_batch_results(
+    batch_results: List[Tuple[int, Optional[Any], Optional[Dict[str, Any]]]],
+    translation_result: TranslationResult
+) -> List[SQLSyntaxValidationResult]:
+    """
+    Process LLM batch evaluation results into validation results.
+
+    Args:
+        batch_results: List of (index, eval_result, issue_summary) tuples
+        translation_result: Translation result containing SQL statements
+
+    Returns:
+        List of SQLSyntaxValidationResult objects
+    """
+    validation_results = []
+    for stmt_idx, eval_result, _ in batch_results:
+        validation_result = _convert_llm_result_to_validation_result(
+            translation_result.results[stmt_idx],
+            eval_result
+        )
+        validation_results.append(validation_result)
+    return validation_results
+
+
+def evaluate_sql_compliance_with_llm(
+    batch: ArtifactBatch,
+    translation_result: TranslationResult
+) -> Tuple[BatchSyntaxValidationResult, List[int]]:
+    """
+    Evaluate SQL syntax validity using LLM validation.
+
+    Args:
+        batch: The original artifact batch
+        translation_result: The translation result containing SQL statements
+
+    Returns:
+        Tuple of (BatchSyntaxValidationResult, evaluated_indices: List[int])
+    """
+    logger.debug(f"Evaluating SQL syntax with LLM for {len(translation_result.results)} statements")
+
+    llm = create_llm_for_node("evaluator")
+    structured_llm = create_structured_llm(llm, batch_mode=True)
+    batch_size = get_evaluation_batch_size()
+
+    evaluated_indices = []
+    validation_results = []
+    sql_statements = []
+    statement_indices = []
+    
+    for idx, sql_statement in enumerate(translation_result.results):
+        if llm_should_skip(sql_statement):
+            logger.debug(f"Skipping statement {idx}: marked for skip")
+            continue
+        
+        evaluated_indices.append(idx)
+        sql_statements.append(sql_statement)
+        statement_indices.append(idx)
+        
+        if len(sql_statements) >= batch_size:
+            batch_results = evaluate_batch_sql_statements(sql_statements, statement_indices, structured_llm, llm)
+            validation_results.extend(_process_llm_batch_results(batch_results, translation_result))
+            sql_statements = []
+            statement_indices = []
+    
+    if sql_statements:
+        batch_results = evaluate_batch_sql_statements(sql_statements, statement_indices, structured_llm, llm)
+        validation_results.extend(_process_llm_batch_results(batch_results, translation_result))
+    
+    valid_count = sum(1 for r in validation_results if r.syntax_valid)
+    invalid_count = len(validation_results) - valid_count
+    
+    batch_result = BatchSyntaxValidationResult(
+        results=validation_results,
+        total_statements=len(validation_results),
+        valid_statements=valid_count,
+        invalid_statements=invalid_count
+    )
+    
+    logger.info(f"LLM syntax evaluation complete: {invalid_count}/{len(validation_results)} statements have invalid syntax")
+    return batch_result, evaluated_indices
 
 
 def evaluate_sql_compliance(
@@ -390,7 +514,7 @@ def build_evaluation_batch_data(
             "total_statements": validation_result.total_statements,
             "valid_statements": validation_result.valid_statements,
             "invalid_statements": validation_result.invalid_statements,
-            "validation_method": "syntax_validator"
+            "validation_method": "llm_validator" if should_use_llm_validation(batch.artifact_type) else "syntax_validator"
         },
         "timestamp": timestamp
     }
@@ -471,7 +595,7 @@ def evaluate_batch(
     Evaluate a batch's translation result for SQL syntax validity.
 
     Always provides validation results based on configuration.
-    Skips unsupported artifacts (procedures, sequences) unless validation is disabled.
+    Skips unsupported artifacts unless validation is disabled.
 
     Args:
         batch: The artifact batch
@@ -504,9 +628,16 @@ def evaluate_batch(
 
     logger.debug(f"Evaluating {len(translation_result.results)} translated SQL statements")
 
-    validation_result, evaluated_indices = evaluate_sql_compliance(
-        batch, translation_result
-    )
+    if should_use_llm_validation(batch.artifact_type):
+        logger.info(f"Using LLM validation for {batch.artifact_type}")
+        validation_result, evaluated_indices = evaluate_sql_compliance_with_llm(
+            batch, translation_result
+        )
+    else:
+        logger.debug(f"Using SQLGlot validation for {batch.artifact_type}")
+        validation_result, evaluated_indices = evaluate_sql_compliance(
+            batch, translation_result
+        )
 
     # Always persist validation results when statements were evaluated
     if evaluated_indices:

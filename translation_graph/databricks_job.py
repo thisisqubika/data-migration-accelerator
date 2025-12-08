@@ -31,7 +31,7 @@ except ImportError:
 def get_artifact_types_list() -> List[str]:
     """Get list of all supported artifact types."""
     return [
-        'tables', 'views', 'schemas', 'databases', 'sequences', 'stages', 'streams', 'pipes',
+        'tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes',
         'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures',
         'external_locations', 'file_formats'
     ]
