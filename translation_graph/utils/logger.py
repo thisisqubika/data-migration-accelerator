@@ -37,7 +37,9 @@ class ConsoleLogHandler(LogHandler):
         timestamp = datetime.utcnow().isoformat() + "Z"
         level_name = level.name
         context_str = json.dumps(context) if context else "{}"
-        print(f"[{timestamp}] {level_name} - {message} | Context: {context_str}", file=sys.stdout)
+        log_line = f"[{timestamp}] {level_name} - {message} | Context: {context_str}\n"
+        sys.stdout.write(log_line)
+        sys.stdout.flush()
 
 
 class FileLogHandler(LogHandler):
