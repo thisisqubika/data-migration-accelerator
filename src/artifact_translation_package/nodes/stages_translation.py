@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.stages_prompts import StagesPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.stages_prompts import StagesPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_stages(batch: ArtifactBatch) -> TranslationResult:

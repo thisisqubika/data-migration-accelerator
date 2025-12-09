@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.masking_policies_prompts import MaskingPoliciesPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.masking_policies_prompts import MaskingPoliciesPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_masking_policies(batch: ArtifactBatch) -> TranslationResult:

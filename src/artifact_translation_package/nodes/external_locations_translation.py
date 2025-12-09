@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.external_locations_prompts import ExternalLocationsPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.external_locations_prompts import ExternalLocationsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_external_locations(batch: ArtifactBatch) -> TranslationResult:

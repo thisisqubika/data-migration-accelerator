@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.grants_prompts import GrantsPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.grants_prompts import GrantsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_grants(batch: ArtifactBatch) -> TranslationResult:

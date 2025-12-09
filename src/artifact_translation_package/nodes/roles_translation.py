@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.roles_prompts import RolesPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.roles_prompts import RolesPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_roles(batch: ArtifactBatch) -> TranslationResult:

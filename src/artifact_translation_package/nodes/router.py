@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.router_prompts import RouterPrompts
-from utils.types import ArtifactBatch
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.router_prompts import RouterPrompts
+from artifact_translation_package.utils.types import ArtifactBatch
 
 
 def artifact_router(batch: ArtifactBatch) -> str:

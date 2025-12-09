@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.streams_prompts import StreamsPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.streams_prompts import StreamsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_streams(batch: ArtifactBatch) -> TranslationResult:

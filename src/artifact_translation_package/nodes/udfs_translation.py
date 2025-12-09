@@ -1,6 +1,6 @@
-from prompts.udfs_prompts import UDFsPrompts
-from utils.types import ArtifactBatch, TranslationResult
-from utils.llm_utils import create_llm_for_node
+from artifact_translation_package.prompts.udfs_prompts import UDFsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.utils.llm_utils import create_llm_for_node
 
 
 def translate_udfs(batch: ArtifactBatch) -> TranslationResult:

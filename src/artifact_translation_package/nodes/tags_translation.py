@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.tags_prompts import TagsPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.tags_prompts import TagsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_tags(batch: ArtifactBatch) -> TranslationResult:

@@ -1,5 +1,5 @@
 from typing import List, Dict, Any
-from utils.types import TranslationResult
+from artifact_translation_package.utils.types import TranslationResult
 
 
 def aggregate_translations(*results: TranslationResult) -> Dict[str, Any]:

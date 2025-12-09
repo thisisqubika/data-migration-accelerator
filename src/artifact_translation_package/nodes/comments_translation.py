@@ -1,6 +1,6 @@
-from config.ddl_config import get_config
-from prompts.comments_prompts import CommentsPrompts
-from utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.prompts.comments_prompts import CommentsPrompts
+from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 
 
 def translate_comments(batch: ArtifactBatch) -> TranslationResult:
