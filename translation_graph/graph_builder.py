@@ -342,12 +342,13 @@ class TranslationGraph:
         
         try:
             initial_state: TranslationState = {
-                "batch": batch,
-                "results": [],
-                "final_result": None,
-                "errors": [],
-                "target_node": None
-            }
+            "batch": batch,
+            "results": [],
+            "final_result": None,
+            "errors": [],
+            "target_node": None,
+            "failed_batches": []
+        }
 
             final_state = self.compiled_graph.invoke(initial_state)
             result = final_state["final_result"] or {}
