@@ -34,7 +34,7 @@ class TranslationState(TypedDict):
     final_result: Optional[Dict[str, Any]]
     errors: List[str]
     target_node: Optional[str]
-    failed_batches: List[Dict[str, Any]]
+    evaluation_results: List[Dict[str, Any]]
 
 
 def router_node(state: TranslationState) -> TranslationState:
@@ -166,14 +166,6 @@ def translate_procedures_node(state: TranslationState) -> TranslationState:
     return {**state, "results": state["results"] + [result]}
 
 
-def translate_sequences_node(state: TranslationState) -> TranslationState:
-    """Translate sequence artifacts."""
-    if not state["batch"]:
-        return state
-    result = translate_sequences(state["batch"])
-    return {**state, "results": state["results"] + [result]}
-
-
 def translate_file_formats_node(state: TranslationState) -> TranslationState:
     """Translate file format artifacts."""
     if not state["batch"]:
@@ -195,10 +187,10 @@ def evaluation_node(state: TranslationState) -> TranslationState:
     last_result = state["results"][-1]
     all_valid, persisted_file, validation_result = evaluate_batch(state["batch"], last_result)
     
-    failed_batches = state.get("failed_batches", [])
+    evaluation_results = state.get("evaluation_results", [])
     
     if not all_valid:
-        failed_batch_info = {
+        evaluation_result_info = {
             "batch": {
                 "artifact_type": state["batch"].artifact_type,
                 "items": state["batch"].items,
@@ -213,11 +205,11 @@ def evaluation_node(state: TranslationState) -> TranslationState:
             "validation_result": validation_result.model_dump() if hasattr(validation_result, 'model_dump') else validation_result,
             "persisted_file": persisted_file
         }
-        failed_batches = failed_batches + [failed_batch_info]
+        evaluation_results = evaluation_results + [evaluation_result_info]
     
     return {
         **state,
-        "failed_batches": failed_batches
+        "evaluation_results": evaluation_results
     }
 
 
@@ -229,12 +221,12 @@ def aggregator_node(state: TranslationState) -> TranslationState:
                 "total_results": 0,
                 "errors": state["errors"],
                 "processing_stats": {},
-                "failed_batches_count": len(state.get("failed_batches", []))
+                "evaluation_results_count": len(state.get("evaluation_results", []))
             }
         }
     else:
-        failed_batches = state.get("failed_batches", [])
-        final_result = aggregate_translations(*state["results"], failed_batches=failed_batches)
+        evaluation_results = state.get("evaluation_results", [])
+        final_result = aggregate_translations(*state["results"], evaluation_results=evaluation_results)
 
     return {**state, "final_result": final_result}
 
@@ -347,7 +339,7 @@ class TranslationGraph:
             "final_result": None,
             "errors": [],
             "target_node": None,
-            "failed_batches": []
+            "evaluation_results": []
         }
 
             final_state = self.compiled_graph.invoke(initial_state)
@@ -407,7 +399,6 @@ class TranslationGraph:
                 "masking_policies": [],
                 "udfs": [],
                 "procedures": [],
-                "sequences": [],
                 "file_formats": [],
                 "metadata": {
                     "total_results": 0,

@@ -165,15 +165,6 @@ class DDLConfig:
                     "endpoint": "databricks-llama-4-maverick"
                 }
             },
-            "sequences_translator": {
-                "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.2,
-                "max_tokens": 4000,
-                "additional_params": {
-                    "endpoint": "databricks-llama-4-maverick"
-                }
-            },
             "file_formats_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",

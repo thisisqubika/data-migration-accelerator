@@ -45,7 +45,7 @@ def translate_views(batch: ArtifactBatch) -> TranslationResult:
                 view_metadata = parse_artifact_json(view_json)
                 prompt = ViewsPrompts.create_prompt(
                     context=context,
-                    ddl=view_metadata.get('view_definition', '')
+                    view_metadata=json.dumps(view_metadata, indent=2)
                 )
 
                 try:

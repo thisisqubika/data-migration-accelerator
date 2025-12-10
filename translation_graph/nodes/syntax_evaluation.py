@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import List, Tuple, Dict, Any, Optional
 
 import sqlglot
-
 from utils.types import ArtifactBatch, TranslationResult
 from utils.evaluation_models import SQLSyntaxValidationResult, BatchSyntaxValidationResult
 from utils.llm_utils import create_llm_for_node
@@ -520,36 +519,28 @@ def build_evaluation_batch_data(
     }
 
 
-def get_failed_batches_directory(batch_context: dict = None) -> str:
+def get_evaluation_results_directory(batch_context: dict = None) -> str:
     """
-    Get the directory path for storing failed batches.
+    Get the directory path for storing evaluation results.
 
     Args:
         batch_context: Optional batch context to determine output directory
 
     Returns:
-        Path to failed batches directory
+        Path to evaluation results directory
     """
-    # If batch context is provided and has source_file, derive output directory from it
-    if batch_context and "source_file" in batch_context:
-        source_file = batch_context["source_file"]
-        source_dir = os.path.dirname(source_file)
-        # Look for an "output" directory in the source directory's parent
-        parent_dir = os.path.dirname(source_dir)
-        output_dir = os.path.join(parent_dir, "output")
-        if os.path.exists(output_dir):
-            failed_batches_dir = os.path.join(output_dir, "validation")
-        else:
-            # Fallback to environment variable or default
-            base_output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
-            failed_batches_dir = os.path.join(base_output_dir, "failed_batches")
-    else:
-        # Use environment variable or default
-        output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
-        failed_batches_dir = os.path.join(output_dir, "failed_batches")
-
-    os.makedirs(failed_batches_dir, exist_ok=True)
-    return failed_batches_dir
+    # If batch context has results_dir, use it (from main.py timestamped folder)
+    if batch_context and "results_dir" in batch_context:
+        results_dir = batch_context["results_dir"]
+        evaluation_results_dir = os.path.join(results_dir, "evaluation_results")
+        os.makedirs(evaluation_results_dir, exist_ok=True)
+        return evaluation_results_dir
+    
+    # Fallback to environment variable or default
+    output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
+    evaluation_results_dir = os.path.join(output_dir, "evaluation_results")
+    os.makedirs(evaluation_results_dir, exist_ok=True)
+    return evaluation_results_dir
 
 
 def persist_evaluation_batch(
@@ -572,10 +563,10 @@ def persist_evaluation_batch(
     """
     logger.info(f"Persisting validation batch with {len(evaluated_indices)} evaluated statements")
 
-    evaluation_batches_dir = get_failed_batches_directory()
+    evaluation_results_dir = get_evaluation_results_directory(batch.context)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"evaluation_batch_{batch.artifact_type}_{timestamp}.json"
-    filepath = os.path.join(evaluation_batches_dir, filename)
+    filepath = os.path.join(evaluation_results_dir, filename)
 
     evaluation_batch_data = build_evaluation_batch_data(
         batch, translation_result, validation_result, evaluated_indices, timestamp

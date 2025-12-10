@@ -105,8 +105,7 @@ def test_translate_multiple_files():
         os.path.join(example_dir, "schemas.json"),
         os.path.join(example_dir, "databases.json"),
         os.path.join(example_dir, "procedures.json"),
-        os.path.join(example_dir, "udfs.json"),
-        os.path.join(example_dir, "sequences.json")
+        os.path.join(example_dir, "udfs.json")
     ]
 
     existing_files = [f for f in files if os.path.exists(f)]
@@ -136,7 +135,7 @@ def test_translate_multiple_files():
 
         print(f"\n6. Generated SQL by artifact type:")
         total_sql_statements = 0
-        for artifact_type in ['tables', 'views', 'schemas', 'databases', 'sequences', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations', 'file_formats']:
+        for artifact_type in ['tables', 'views', 'schemas', 'databases',  'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations', 'file_formats']:
             if artifact_type in result and result[artifact_type]:
                 sql_count = len(result[artifact_type])
                 total_sql_statements += sql_count
@@ -183,15 +182,13 @@ def test_save_sql_files():
         os.path.join(example_dir, "schemas.json"),
         os.path.join(example_dir, "databases.json"),
         os.path.join(example_dir, "procedures.json"),
-        os.path.join(example_dir, "udfs.json"),
-        os.path.join(example_dir, "sequences.json")
+        os.path.join(example_dir, "udfs.json")
     ]
     output_dir = os.path.join(example_dir, "output", "sql_files")
 
-    # Check that files exist
-    missing_files = [f for f in files if not os.path.exists(f)]
-    if missing_files:
-        print(f"ERROR: Example files not found: {missing_files}")
+    existing_files = [f for f in files if os.path.exists(f)]
+    if not existing_files:
+        print(f"ERROR: No example files found in {example_dir}")
         return False
 
     try:
