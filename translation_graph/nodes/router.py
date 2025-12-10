@@ -1,8 +1,9 @@
-from config.ddl_config import get_config
 from prompts.router_prompts import RouterPrompts
+from config.ddl_config import get_config
 from utils.types import ArtifactBatch
 from utils.error_handler import handle_node_error
 from utils.observability import get_observability
+from utils.llm_utils import create_llm_for_node
 
 
 @handle_node_error("artifact_router")
@@ -19,7 +20,7 @@ def artifact_router(batch: ArtifactBatch) -> str:
     Returns:
         String indicating the target node: "databases", "schemas", "tables", "views",
         "stages", "external_locations", "streams", "pipes", "roles", "grants", "tags",
-        "comments", "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+        "comments", "masking_policies", "udfs", "procedures", "file_formats"
     """
     obs = get_observability()
     metrics = obs.get_metrics() if obs else None
@@ -38,7 +39,7 @@ def artifact_router(batch: ArtifactBatch) -> str:
             valid_nodes = {
                 "databases", "schemas", "tables", "views", "stages", "external_locations",
                 "streams", "pipes", "roles", "grants", "tags", "comments",
-                "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+                "masking_policies", "udfs", "procedures", "file_formats"
             }
             if batch.artifact_type in valid_nodes:
                 if metrics:
@@ -46,7 +47,8 @@ def artifact_router(batch: ArtifactBatch) -> str:
                 return batch.artifact_type
         
         config = get_config()
-        llm = config.get_llm_for_node("smart_router")
+        llm_config = config.get_llm_for_node("smart_router")
+        llm = create_llm_for_node("smart_router")
         prompt = RouterPrompts.create_prompt()
 
         ddl_content = "\n".join(batch.items) if batch.items else ""
@@ -86,7 +88,7 @@ def artifact_router(batch: ArtifactBatch) -> str:
         valid_nodes = {
             "databases", "schemas", "tables", "views", "stages", "external_locations",
             "streams", "pipes", "roles", "grants", "tags", "comments",
-            "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+            "masking_policies", "udfs", "procedures", "file_formats"
         }
 
         for node in valid_nodes:

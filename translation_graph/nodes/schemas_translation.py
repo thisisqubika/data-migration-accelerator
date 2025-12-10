@@ -1,10 +1,10 @@
-import time
 import json
 from prompts.schemas_prompts import SchemasPrompts
 from utils.types import ArtifactBatch, TranslationResult
 from utils.llm_utils import create_llm_for_node
 from utils.error_handler import handle_node_error, retry_on_error
 from utils.observability import get_observability
+from utils.translation_helpers import build_translation_context, parse_artifact_json, invoke_llm_translation
 
 
 @handle_node_error("translate_schemas")
@@ -23,74 +23,45 @@ def translate_schemas(batch: ArtifactBatch) -> TranslationResult:
     logger = obs.get_logger("translate_schemas") if obs else None
     metrics = obs.get_metrics() if obs else None
     
-    context = {
+    context_dict = {
         "artifact_type": batch.artifact_type,
         "batch_size": len(batch.items)
     }
     
     if metrics:
-        metrics.start_stage("translate_schemas", context)
+        metrics.start_stage("translate_schemas", context_dict)
     
     try:
         from config.ddl_config import get_config
         config = get_config()
         llm_config = config.get_llm_for_node("schemas_translator")
         llm = create_llm_for_node("schemas_translator")
-
-        # Process each schema in the batch
         results = []
         errors = []
+        context = build_translation_context(batch)
 
         for schema_json in batch.items:
             try:
-                # Parse the schema JSON
-                schema_metadata = json.loads(schema_json)
-
-                # Create prompt with context and schema metadata
-                context_dict = {
-                    "source_db": batch.context.get("source_db", "snowflake"),
-                    "target_db": batch.context.get("target_db", "databricks")
-                }
-
+                schema_metadata = parse_artifact_json(schema_json)
                 prompt = SchemasPrompts.create_prompt(
-                    context=context_dict,
+                    context=context,
                     schema_metadata=json.dumps(schema_metadata, indent=2)
                 )
 
-                # Call the LLM to generate DDL
-                ai_start = time.time()
                 try:
-                    response = llm.invoke(prompt)
-                    ai_latency = time.time() - ai_start
-                    
-                    if metrics:
-                        metrics.record_ai_call(
-                            provider=llm_config.provider,
-                            model=llm_config.model,
-                            latency=ai_latency,
-                            error=False
-                        )
-                    
-                    ddl_result = response.content if hasattr(response, 'content') else str(response)
+                    ddl_result = invoke_llm_translation(llm, prompt)
                     results.append(ddl_result.strip())
                 except Exception as e:
-                    ai_latency = time.time() - ai_start
-                    if metrics:
-                        metrics.record_ai_call(
-                            provider=llm_config.provider,
-                            model=llm_config.model,
-                            latency=ai_latency,
-                            error=True
-                        )
+                    schema_name = schema_metadata.get('schema_name', 'unknown')
+                    error_msg = f"LLM error for schema {schema_name}: {str(e)}"
                     if logger:
-                        logger.error(f"LLM error for schema {schema_metadata.get('schema_name', 'unknown')}", 
-                                   context=context, error=str(e))
-                    results.append(f"-- Error generating DDL for schema {schema_metadata.get('schema_name', 'unknown')}: {str(e)}")
-                    errors.append(f"LLM error for schema {schema_metadata.get('schema_name', 'unknown')}: {str(e)}")
+                        logger.error(error_msg, context=context_dict, error=str(e))
+                    results.append(f"-- Error generating DDL for schema {schema_name}: {str(e)}")
+                    errors.append(error_msg)
 
             except Exception as e:
                 if logger:
-                    logger.error(f"Error processing schema", context=context, error=str(e))
+                    logger.error(f"Error processing schema", context=context_dict, error=str(e))
                 errors.append(f"Error processing schema: {str(e)}")
 
         result = TranslationResult(

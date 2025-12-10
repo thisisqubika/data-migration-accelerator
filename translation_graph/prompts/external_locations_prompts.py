@@ -34,3 +34,5 @@ Provide only the generated CREATE EXTERNAL LOCATION SQL statement, no explanatio
 
 
 
+
+
