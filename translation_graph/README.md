@@ -27,7 +27,7 @@ translation_graph/
 │       ├── databricks_job_notebook.py # Parameterized job notebook
 │       └── databricks_notebook_example.py  # Example Databricks notebook
 ├── graph_builder.py           # LangGraph construction
-├── run_file_processor.py      # File-based processor entry point
+├── main.py                    # Main entry point for file-based processing
 ├── databricks_job.py          # Databricks job entry point
 └── requirements.txt           # Python dependencies
 ```
@@ -103,13 +103,13 @@ Process JSON files where each file contains a specific artifact type. The artifa
 
 ```bash
 # Process a single file
-python run_file_processor.py tables.json --batch-size 10
+python main.py tables.json --batch-size 10
 
 # Process multiple files
-python run_file_processor.py tables.json views.json schemas.json --batch-size 10
+python main.py tables.json views.json schemas.json --batch-size 10
 
 # Save results to a file
-python run_file_processor.py tables.json --batch-size 10 --output results.json
+python main.py tables.json --batch-size 10 --output results.json
 ```
 
 **JSON File Structure:**
@@ -230,7 +230,7 @@ Process your own JSON files directly:
 
 ```bash
 # Process JSON files with the file processor
-python run_file_processor.py tables.json --batch-size 10
+python main.py tables.json --batch-size 10
 
 # Generate SQL files instead of JSON
 python databricks_job.py --input-files tables.json --output-format sql --output-path ./output/

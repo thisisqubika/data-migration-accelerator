@@ -95,7 +95,7 @@ def clean_sql_preview(sql_statement: str, max_length: int = 200) -> str:
 
 def create_error_evaluation_result(error_message: str) -> SQLEvaluationResult:
     """
-    Create an error evaluation result for parsing failures.
+    Create an error evaluation result for evaluation failures.
     
     Args:
         error_message: Error message describing the failure
@@ -110,56 +110,52 @@ def create_error_evaluation_result(error_message: str) -> SQLEvaluationResult:
             SQLIssue(
                 issue_type="other",
                 severity="error",
-                description=f"Failed to parse evaluation response: {error_message}",
-                suggestion="Check LLM response format"
+                description=f"Evaluation failed: {error_message}",
+                suggestion="Check LLM response and configuration"
             )
         ],
         syntax_valid=False,
         follows_best_practices=False,
-        summary=f"Parsing error: {error_message}"
+        summary=f"Evaluation error: {error_message}"
     )
 
 
 def parse_evaluation_response(response: Any, sql_statement: str = None) -> SQLEvaluationResult:
     """
-    Parse LLM response into structured evaluation result.
+    Extract evaluation result from structured output response.
+    
+    With structured outputs, the LLM returns a SQLEvaluationResult directly.
     
     Args:
-        response: LLM response (expected to be SQLEvaluationResult instance)
+        response: Structured output response (SQLEvaluationResult instance)
         sql_statement: Original SQL statement being evaluated (for context, optional)
         
     Returns:
         SQLEvaluationResult object
     """
-    try:
-        if isinstance(response, SQLEvaluationResult):
-            return response
-        
-        raise TypeError(f"Unexpected response type: {type(response)}")
-            
-    except Exception as e:
-        return create_error_evaluation_result(str(e))
+    if isinstance(response, SQLEvaluationResult):
+        return response
+    
+    raise TypeError(f"Expected SQLEvaluationResult, got {type(response)}")
 
 
 def parse_batch_evaluation_response(response: Any) -> List[SQLEvaluationResult]:
     """
-    Parse batch LLM response into list of evaluation results.
+    Extract evaluation results from structured output response.
+    
+    With structured outputs, the LLM returns a BatchSQLEvaluationResult directly,
+    so we just extract the results list.
     
     Args:
-        response: LLM response (expected to be BatchSQLEvaluationResult instance)
+        response: Structured output response (BatchSQLEvaluationResult instance)
         
     Returns:
         List of SQLEvaluationResult objects
     """
-    try:
-        if isinstance(response, BatchSQLEvaluationResult):
-            return response.results
-        
-        raise TypeError(f"Unexpected batch response type: {type(response)}")
-            
-    except Exception as e:
-        error_result = create_error_evaluation_result(str(e))
-        return [error_result]
+    if isinstance(response, BatchSQLEvaluationResult):
+        return response.results
+    
+    raise TypeError(f"Expected BatchSQLEvaluationResult, got {type(response)}")
 
 
 def create_issue_summary(
@@ -450,7 +446,7 @@ def filter_failed_items(
     return [items[idx] for idx in failed_indices if idx < len(items)]
 
 
-def build_failed_batch_data(
+def build_evaluation_result_data(
     batch: ArtifactBatch,
     translation_result: TranslationResult,
     issues: List[Dict[str, Any]],
@@ -510,20 +506,29 @@ def build_failed_batch_data(
     }
 
 
-def get_failed_batches_directory() -> str:
+def get_evaluation_results_directory(batch_context: dict = None) -> str:
     """
-    Get the directory path for storing failed batches.
+    Get the directory path for storing evaluation results.
+    
+    Args:
+        batch_context: Optional batch context to determine output directory
     
     Returns:
-        Path to failed batches directory
+        Path to evaluation results directory
     """
+    if batch_context and "results_dir" in batch_context:
+        results_dir = batch_context["results_dir"]
+        evaluation_results_dir = os.path.join(results_dir, "evaluation_results")
+        os.makedirs(evaluation_results_dir, exist_ok=True)
+        return evaluation_results_dir
+    
     output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
-    failed_batches_dir = os.path.join(output_dir, "failed_batches")
-    os.makedirs(failed_batches_dir, exist_ok=True)
-    return failed_batches_dir
+    evaluation_results_dir = os.path.join(output_dir, "evaluation_results")
+    os.makedirs(evaluation_results_dir, exist_ok=True)
+    return evaluation_results_dir
 
 
-def persist_failed_batch(
+def persist_evaluation_result(
     batch: ArtifactBatch, 
     translation_result: TranslationResult, 
     issues: List[Dict[str, Any]],
@@ -531,11 +536,11 @@ def persist_failed_batch(
     failed_indices: List[int]
 ) -> str:
     """
-    Persist failed batch to a file with structured evaluation results.
+    Persist evaluation result to a file with structured evaluation results.
     Only includes SQL statements that failed evaluation (non-compliant).
 
     Args:
-        batch: The failed artifact batch
+        batch: The evaluated artifact batch
         translation_result: The translation result
         issues: List of structured compliance issues
         evaluation_results: List of structured evaluation results (only failed ones)
@@ -544,17 +549,17 @@ def persist_failed_batch(
     Returns:
         Path to the persisted file
     """
-    failed_batches_dir = get_failed_batches_directory()
+    evaluation_results_dir = get_evaluation_results_directory(batch.context)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"failed_batch_{batch.artifact_type}_{timestamp}.json"
-    filepath = os.path.join(failed_batches_dir, filename)
+    filename = f"evaluation_result_{batch.artifact_type}_{timestamp}.json"
+    filepath = os.path.join(evaluation_results_dir, filename)
 
-    failed_batch_data = build_failed_batch_data(
+    evaluation_result_data = build_evaluation_result_data(
         batch, translation_result, issues, evaluation_results, failed_indices, timestamp
     )
 
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(failed_batch_data, f, indent=2, default=str)
+        json.dump(evaluation_result_data, f, indent=2, default=str)
 
     return filepath
 
@@ -578,7 +583,7 @@ def evaluate_batch(
     )
 
     if not is_compliant:
-        filepath = persist_failed_batch(
+        filepath = persist_evaluation_result(
             batch, translation_result, issues, failed_evaluation_results, failed_indices
         )
         return False, filepath, failed_evaluation_results

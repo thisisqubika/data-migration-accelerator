@@ -5,13 +5,13 @@ from utils.observability import get_observability
 
 
 @handle_node_error("aggregate_translations")
-def aggregate_translations(*results: TranslationResult, failed_batches: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+def aggregate_translations(*results: TranslationResult, evaluation_results: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     """
     Aggregate multiple translation results into a final merged structure.
 
     Args:
         *results: Variable number of TranslationResult objects
-        failed_batches: Optional list of failed batch dictionaries
+        evaluation_results: Optional list of evaluation result dictionaries
 
     Returns:
         Dictionary with merged results including all artifact types
@@ -26,7 +26,7 @@ def aggregate_translations(*results: TranslationResult, failed_batches: Optional
         all_artifact_types = {
             "databases", "schemas", "tables", "views", "stages", "external_locations",
             "streams", "pipes", "roles", "grants", "tags", "comments",
-            "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+            "masking_policies", "udfs", "procedures", "file_formats"
         }
         
         merged = {artifact_type: [] for artifact_type in all_artifact_types}
@@ -34,7 +34,7 @@ def aggregate_translations(*results: TranslationResult, failed_batches: Optional
             "total_results": 0,
             "errors": [],
             "processing_stats": {},
-            "failed_batches_count": len(failed_batches) if failed_batches else 0
+            "evaluation_results_count": len(evaluation_results) if evaluation_results else 0
         }
 
         for result in results:

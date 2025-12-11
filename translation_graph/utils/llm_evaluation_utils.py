@@ -103,23 +103,21 @@ def format_sql_statements_for_batch(sql_statements: List[str]) -> str:
 
 def parse_batch_evaluation_response(response: Any) -> List[SQLEvaluationResult]:
     """
-    Parse batch LLM response into list of evaluation results.
+    Extract evaluation results from structured output response.
+    
+    With structured outputs, the LLM returns a BatchSQLEvaluationResult directly,
+    so we just extract the results list.
     
     Args:
-        response: LLM response (expected to be BatchSQLEvaluationResult instance)
+        response: Structured output response (BatchSQLEvaluationResult instance)
         
     Returns:
         List of SQLEvaluationResult objects
     """
-    try:
-        if isinstance(response, BatchSQLEvaluationResult):
-            return response.results
-        
-        raise TypeError(f"Unexpected batch response type: {type(response)}")
-            
-    except Exception as e:
-        error_result = create_error_evaluation_result(str(e))
-        return [error_result]
+    if isinstance(response, BatchSQLEvaluationResult):
+        return response.results
+    
+    raise TypeError(f"Expected BatchSQLEvaluationResult, got {type(response)}")
 
 
 def clean_sql_preview(sql_statement: str, max_length: int = 200) -> str:
@@ -155,7 +153,7 @@ def clean_sql_preview(sql_statement: str, max_length: int = 200) -> str:
 
 def create_error_evaluation_result(error_message: str) -> SQLEvaluationResult:
     """
-    Create an error evaluation result for parsing failures.
+    Create an error evaluation result for evaluation failures.
     
     Args:
         error_message: Error message describing the failure
@@ -165,11 +163,11 @@ def create_error_evaluation_result(error_message: str) -> SQLEvaluationResult:
     """
     return SQLEvaluationResult(
         syntax_valid=False,
-        error_message=f"Failed to parse evaluation response: {error_message}",
+        error_message=f"Evaluation failed: {error_message}",
         issues=[
             SQLIssue(
-                description=f"Failed to parse evaluation response: {error_message}",
-                suggestion="Check LLM response format"
+                description=f"Evaluation failed: {error_message}",
+                suggestion="Check LLM response and configuration"
             )
         ]
     )

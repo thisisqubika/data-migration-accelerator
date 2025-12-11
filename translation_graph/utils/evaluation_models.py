@@ -69,3 +69,18 @@ class BatchSQLEvaluationResult(BaseModel):
     )
 
 
+class RouterResponse(BaseModel):
+    """Structured response from the artifact router."""
+    artifact_type: str = Field(
+        description="The type of artifact detected. Must be one of: databases, schemas, tables, views, stages, external_locations, streams, pipes, roles, grants, tags, comments, masking_policies, udfs, procedures, file_formats"
+    )
+    confidence: Optional[str] = Field(
+        default=None,
+        description="Confidence level in the routing decision (optional)"
+    )
+    reasoning: Optional[str] = Field(
+        default=None,
+        description="Brief explanation of why this artifact type was chosen (optional)"
+    )
+
+

@@ -32,7 +32,6 @@ def determine_artifact_type_from_filename(filename: str) -> Optional[str]:
         "comments": ["comment", "comments"],
         "masking_policies": ["masking_policy", "masking_policies", "masking", "policy"],
         "udfs": ["udf", "udfs", "function", "functions"],
-        "sequences": ["sequence", "sequences"],
         "file_formats": ["file_format", "file_formats", "format", "formats"],
         "external_locations": ["external_location", "external_locations", "external"]
     }
@@ -131,7 +130,7 @@ def create_batches_from_file(
             f"Cannot determine artifact type from filename: {filepath}. "
             f"Filename should contain one of: tables, views, schemas, databases, "
             f"procedures, roles, stages, streams, pipes, grants, tags, comments, "
-            f"masking_policies, udfs, sequences, file_formats, external_locations"
+            f"masking_policies, udfs, file_formats, external_locations"
         )
     
     if not os.path.exists(filepath):
