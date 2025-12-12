@@ -321,8 +321,8 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
     print(f"\nSQL files saved to: {output_base_path}")
     print(f"Total SQL files: {total_sql_files}")
     print(f"Total SQL statements: {total_sql_statements}")
-
-if __name__ == "__main__":
+def main():
+    """Main entry point for Databricks translation jobs."""
     import argparse
     
     parser = argparse.ArgumentParser(
@@ -387,3 +387,5 @@ if __name__ == "__main__":
     print(f"Errors: {len(result.get('metadata', {}).get('errors', []))}")
 
 
+if __name__ == "__main__":
+    main()
