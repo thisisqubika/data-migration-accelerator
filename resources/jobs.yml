@@ -30,6 +30,14 @@ resources:
             entry_point: grant-transformer
             package_name: migration_accelerator_package
           environment_key: "serverless_wheel"
+
+        - task_key: artifact_translation_task
+          depends_on:
+            - task_key: grant_flattening_task
+          python_wheel_task:
+            entry_point: translation-module
+            package_name: artifact_translation_package
+          environment_key: "serverless_wheel"
               
 
       environments:
