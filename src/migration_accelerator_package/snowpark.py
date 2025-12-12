@@ -8,9 +8,13 @@ import os
 import json
 from typing import Dict, List, Any, Optional
 from snowflake.snowpark import Session
-from snowflake.snowpark.functions import col
 from databricks.sdk.runtime import dbutils
 from migration_accelerator_package import constants
+from migration_accelerator_package.artifact_readers import (
+    ArtifactReaderFactory,
+    TablesReader
+)
+from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
 
 def get_secret(secret_name):
     """Retrieve secrets from Databricks secret scope"""
@@ -64,248 +68,183 @@ class SnowparkObjectReader:
         self.session = session
         self.database = SFLKdatabase
         self.schema = SFLKschema
+        self._readers = {}
+        self._initialize_readers()
+    
+    def _initialize_readers(self):
+        """Initialize artifact readers using the factory pattern."""
+        for artifact_type in ArtifactType:
+            self._readers[artifact_type] = ArtifactReaderFactory.create_reader(
+                artifact_type, self.session, self.database, self.schema
+            )
     
     def get_tables(self) -> List[Dict[str, Any]]:
         """Get all tables in the schema."""
-        query = f"""
-        SELECT 
-            table_catalog as database_name,
-            table_schema as schema_name,
-            table_name,
-            table_type,
-            row_count,
-            bytes,
-            created,
-            last_altered,
-            comment
-        FROM information_schema.tables
-        WHERE table_schema = '{self.schema}'
-        AND table_type = 'BASE TABLE'
-        ORDER BY table_name
-        """
-        result = self.session.sql(query).collect()
-        # Convert to dict and normalize keys (handle case sensitivity)
-        tables = []
-        for row in result:
-            row_dict = dict(row.as_dict())
-            # Normalize keys to lowercase for consistency
-            normalized = {k.lower(): v for k, v in row_dict.items()}
-            tables.append(normalized)
-        return tables
+        return self._readers[ArtifactType.TABLES].read()
     
     def get_table_columns(self, table_name: str) -> List[Dict[str, Any]]:
         """Get columns for a specific table."""
-        query = f"""
-        SELECT 
-            column_name,
-            data_type,
-            character_maximum_length,
-            numeric_precision,
-            numeric_scale,
-            is_nullable,
-            column_default,
-            comment
-        FROM information_schema.columns
-        WHERE table_schema = '{self.schema}'
-        AND table_name = '{table_name}'
-        ORDER BY ordinal_position
-        """
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        tables_reader = self._readers[ArtifactType.TABLES]
+        if isinstance(tables_reader, TablesReader):
+            return tables_reader.read_columns(table_name)
+        return []
     
     def get_views(self) -> List[Dict[str, Any]]:
         """Get all views in the schema."""
-        query = f"""
-        SELECT 
-            table_catalog as database_name,
-            table_schema as schema_name,
-            table_name as view_name,
-            view_definition,
-            created,
-            comment
-        FROM information_schema.views
-        WHERE table_schema = '{self.schema}'
-        ORDER BY view_name
-        """
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.VIEWS].read()
     
     def get_procedures(self) -> List[Dict[str, Any]]:
         """Get all stored procedures in the schema."""
-        query = f"""
-        SELECT 
-            procedure_catalog as database_name,
-            procedure_schema as schema_name,
-            procedure_name,
-            procedure_definition,
-            created,
-            last_altered,
-            comment
-        FROM information_schema.procedures
-        WHERE procedure_schema = '{self.schema}'
-        ORDER BY procedure_name
-        """
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.PROCEDURES].read()
     
     def get_functions(self) -> List[Dict[str, Any]]:
         """Get all user-defined functions in the schema."""
-        query = f"""
-        SELECT 
-            function_catalog as database_name,
-            function_schema as schema_name,
-            function_name,
-            function_definition,
-            created,
-            last_altered,
-            comment
-        FROM information_schema.functions
-        WHERE function_schema = '{self.schema}'
-        ORDER BY function_name
-        """
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.FUNCTIONS].read()
     
     def get_sequences(self) -> List[Dict[str, Any]]:
         """Get all sequences in the schema."""
-        # Use SHOW command for sequences as information_schema may not have all columns
-        query = f"SHOW SEQUENCES IN SCHEMA {self.database}.{self.schema}"
-        try:
-            result = self.session.sql(query).collect()
-            # Normalize keys to lowercase
-            return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
-        except Exception as e:
-            # Fallback: try information_schema with basic columns only
-            print(f"  ⚠ Warning: SHOW SEQUENCES failed, trying information_schema: {e}")
-            query = f"""
-            SELECT 
-                sequence_catalog as database_name,
-                sequence_schema as schema_name,
-                sequence_name
-            FROM information_schema.sequences
-            WHERE sequence_schema = '{self.schema}'
-            ORDER BY sequence_name
-            """
-            result = self.session.sql(query).collect()
-            # Normalize keys to lowercase
-            return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.SEQUENCES].read()
     
     def get_stages(self) -> List[Dict[str, Any]]:
         """Get all stages in the schema."""
-        # Use SHOW command for stages
-        query = f"SHOW STAGES IN SCHEMA {self.database}.{self.schema}"
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.STAGES].read()
     
     def get_file_formats(self) -> List[Dict[str, Any]]:
         """Get all file formats in the schema."""
-        query = f"SHOW FILE FORMATS IN SCHEMA {self.database}.{self.schema}"
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.FILE_FORMATS].read()
     
     def get_tasks(self) -> List[Dict[str, Any]]:
         """Get all tasks in the schema."""
-        query = f"SHOW TASKS IN SCHEMA {self.database}.{self.schema}"
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.TASKS].read()
     
     def get_streams(self) -> List[Dict[str, Any]]:
         """Get all streams in the schema."""
-        query = f"SHOW STREAMS IN SCHEMA {self.database}.{self.schema}"
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.STREAMS].read()
     
     def get_pipes(self) -> List[Dict[str, Any]]:
         """Get all pipes in the schema."""
-        query = f"SHOW PIPES IN SCHEMA {self.database}.{self.schema}"
-        result = self.session.sql(query).collect()
-        # Normalize keys to lowercase
-        return [{k.lower(): v for k, v in dict(row.as_dict()).items()} for row in result]
+        return self._readers[ArtifactType.PIPES].read()
     
     def get_table_data(self, table_name: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get data from a specific table."""
-        query = f"SELECT * FROM {self.database}.{self.schema}.{table_name}"
-        if limit:
-            query += f" LIMIT {limit}"
-        result = self.session.sql(query).collect()
-        return [dict(row.as_dict()) for row in result]
+        tables_reader = self._readers[ArtifactType.TABLES]
+        if isinstance(tables_reader, TablesReader):
+            return tables_reader.read_table_data(table_name, limit)
+        return []
+
+    def get_roles(self) -> List[Dict[str, Any]]:
+        """Get all custom roles."""
+        return self._readers[ArtifactType.ROLES].read()
+
+    def get_grants_privileges(self) -> List[Dict[str, Any]]:
+        """Get all privilege grants."""
+        return self._readers[ArtifactType.GRANTS_PRIVILEGES].read()
+
+    def get_grants_hierarchy(self) -> List[Dict[str, Any]]:
+        """Get all role hierarchy grants."""
+        return self._readers[ArtifactType.GRANTS_HIERARCHY].read()
+
+    def get_grants_future(self) -> List[Dict[str, Any]]:
+        """Get all future grants."""
+        return self._readers[ArtifactType.GRANTS_FUTURE].read()
     
     def get_all_objects(self) -> Dict[str, Any]:
-        """Get all database objects in one call."""
+        """Get all database objects in one call using artifact readers."""
         print("\n📊 Reading all Snowflake objects using Snowpark...")
         
         objects = {
             'database': self.database,
             'schema': self.schema,
-            'tables': self.get_tables(),
-            'views': self.get_views(),
-            'procedures': self.get_procedures(),
-            'functions': self.get_functions(),
-            'sequences': self.get_sequences(),
-            'stages': self.get_stages(),
-            'file_formats': self.get_file_formats(),
-            'tasks': self.get_tasks(),
-            'streams': self.get_streams(),
-            'pipes': self.get_pipes(),
         }
         
-        # Add column details for each table
-        for table in objects['tables']:
+        # Read all artifacts using facade pattern
+        for artifact_type in ArtifactType:
+            try:
+                artifacts = self._readers[artifact_type].read()
+                objects[artifact_type.value] = artifacts
+                print(f"✓ Found {len(artifacts)} {artifact_type.value}")
+            except Exception as e:
+                print(f"  ⚠ Warning: Error reading {artifact_type.value}: {str(e)[:100]}")
+                objects[artifact_type.value] = []
+        
+        # Add column details and sample data for each table
+        for table in objects[ArtifactType.TABLES.value]:
             # Handle both lowercase and uppercase keys
             table_name = table.get('table_name') or table.get('TABLE_NAME')
             if table_name:
                 table['columns'] = self.get_table_columns(table_name)
+                
+                # Add sample data (limit to 10 rows each)
+                try:
+                    table['sample_data'] = self.get_table_data(table_name, limit=10)
+                except Exception as e:
+                    table['sample_data'] = f"Error retrieving data: {str(e)}"
             else:
                 print(f"  ⚠ Warning: Could not find table_name in table object: {list(table.keys())}")
                 table['columns'] = []
-        
-        # Add sample data for tables (limit to 10 rows each)
-        for table in objects['tables']:
-            try:
-                # Handle both lowercase and uppercase keys
-                table_name = table.get('table_name') or table.get('TABLE_NAME')
-                if table_name:
-                    table['sample_data'] = self.get_table_data(table_name, limit=10)
-                else:
-                    table['sample_data'] = "Error: table_name not found"
-            except Exception as e:
-                table['sample_data'] = f"Error retrieving data: {str(e)}"
-        
-        print(f"✓ Found {len(objects['tables'])} tables")
-        print(f"✓ Found {len(objects['views'])} views")
-        print(f"✓ Found {len(objects['procedures'])} procedures")
-        print(f"✓ Found {len(objects['functions'])} functions")
-        print(f"✓ Found {len(objects['sequences'])} sequences")
-        print(f"✓ Found {len(objects['stages'])} stages")
-        print(f"✓ Found {len(objects['file_formats'])} file formats")
-        print(f"✓ Found {len(objects['tasks'])} tasks")
-        print(f"✓ Found {len(objects['streams'])} streams")
-        print(f"✓ Found {len(objects['pipes'])} pipes")
+                table['sample_data'] = "Error: table_name not found"
         
         return objects
     
-    def save_to_json(self, output_file: str = 'snowflake_objects_snowpark.json'):
-        """Save all objects to a JSON file in Unity Catalog Volume using dbutils."""
+    def save_to_json(self, output_dir: str = None):
+        """Save all objects to separate JSON files in Unity Catalog Volume, one per artifact type."""
         objects = self.get_all_objects()
         
-        # Convert objects to JSON string
-        json_data = json.dumps(objects, indent=2, default=str)
+        # Use default volume path if output_dir not specified
+        if output_dir is None:
+            base_volume_path = f"/Volumes/{constants.UnityCatalogConfig.CATALOG.value}/{constants.UnityCatalogConfig.SCHEMA.value}/{constants.UnityCatalogConfig.RAW_VOLUME.value}"
+        else:
+            base_volume_path = output_dir
         
-        # Define the volume path
-        volume_path = f"/Volumes/{constants.UnityCatalogConfig.CATALOG.value}/{constants.UnityCatalogConfig.SCHEMA.value}/{constants.UnityCatalogConfig.RAW_VOLUME.value}/{output_file}"
+        # Metadata to include in each file
+        metadata = {
+            'database': objects['database'],
+            'schema': objects['schema']
+        }
         
-        # Write using dbutils
-        dbutils.fs.put(volume_path, json_data, overwrite=True)
+        # Mapping of artifact types to file names
+        artifact_file_mapping = {
+            ArtifactType.TABLES: ArtifactFileName.TABLES,
+            ArtifactType.VIEWS: ArtifactFileName.VIEWS,
+            ArtifactType.PROCEDURES: ArtifactFileName.PROCEDURES,
+            ArtifactType.FUNCTIONS: ArtifactFileName.FUNCTIONS,
+            ArtifactType.SEQUENCES: ArtifactFileName.SEQUENCES,
+            ArtifactType.STAGES: ArtifactFileName.STAGES,
+            ArtifactType.FILE_FORMATS: ArtifactFileName.FILE_FORMATS,
+            ArtifactType.TASKS: ArtifactFileName.TASKS,
+            ArtifactType.STREAMS: ArtifactFileName.STREAMS,
+            ArtifactType.PIPES: ArtifactFileName.PIPES,
+            ArtifactType.ROLES: ArtifactFileName.ROLES,
+            ArtifactType.GRANTS_PRIVILEGES: ArtifactFileName.GRANTS_PRIVILEGES,
+            ArtifactType.GRANTS_HIERARCHY: ArtifactFileName.GRANTS_HIERARCHY,
+            ArtifactType.GRANTS_FUTURE: ArtifactFileName.GRANTS_FUTURE
+        }
         
-        print(f"\n✓ Saved all objects to Unity Catalog Volume: {volume_path}")
+        saved_files = []
+        
+        # Save each artifact type to its own file
+        for artifact_type, file_name_enum in artifact_file_mapping.items():
+            artifact_key = artifact_type.value
+            if artifact_key in objects:
+                filename = file_name_enum.value
+                volume_path = f"{base_volume_path}/{filename}"
+                
+                # Prepare data with metadata
+                artifact_data = {
+                    **metadata,
+                    artifact_key: objects[artifact_key]
+                }
+                
+                # Convert to JSON string
+                json_data = json.dumps(artifact_data, indent=2, default=str)
+                
+                # Write using dbutils
+                dbutils.fs.put(volume_path, json_data, overwrite=True)
+                
+                saved_files.append(filename)
+                print(f"  ✓ Saved {artifact_key} to {filename}")
+        
+        print(f"\n✓ Saved {len(saved_files)} artifact files to Unity Catalog Volume: {base_volume_path}")
     
     def object_exists(self, object_name: str, object_type: str = 'TABLE') -> bool:
         """Check if an object exists in the schema."""
@@ -434,6 +373,10 @@ def main():
                 'tasks': len(objects['tasks']),
                 'streams': len(objects['streams']),
                 'pipes': len(objects['pipes']),
+                'roles': len(objects['roles']),
+                'grants_privileges': len(objects['grants_privileges']),
+                'grants_hierarchy': len(objects['grants_hierarchy']),
+                'grants_future': len(objects['grants_future'])
             }
         }, indent=2))
         

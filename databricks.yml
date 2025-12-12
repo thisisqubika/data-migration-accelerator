@@ -2,8 +2,11 @@ bundle:
   name: migration-accelerator
 
 include:
+  - tags.yml
   - resources/*.yml   
 
 targets:
   dev:
     default: true
+    presets:
+      tags: ${var.global_project_tag}

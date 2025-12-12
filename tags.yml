@@ -1,0 +1,8 @@
+# tags.yml
+
+variables:
+  global_project_tag:
+    description: "A tag applied to every resource in the bundle."
+    type: complex
+    default:
+      Project: migration-accelerator

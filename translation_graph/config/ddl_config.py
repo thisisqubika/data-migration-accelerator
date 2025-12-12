@@ -165,15 +165,6 @@ class DDLConfig:
                     "endpoint": "databricks-llama-4-maverick"
                 }
             },
-            "sequences_translator": {
-                "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.2,
-                "max_tokens": 4000,
-                "additional_params": {
-                    "endpoint": "databricks-llama-4-maverick"
-                }
-            },
             "file_formats_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",
@@ -191,12 +182,29 @@ class DDLConfig:
                 "additional_params": {
                     "endpoint": "databricks-llama-4-maverick"
                 }
+            },
+            "evaluator": {
+                "provider": "databricks",
+                "model": "databricks-meta-llama-3-1-8b-instruct",
+                "temperature": 0.1,
+                "max_tokens": 1000,
+                "additional_params": {
+                    "endpoint": "databricks-meta-llama-3-1-8b-instruct"
+                }
             }
         },
         "processing": {
             "batch_size": 10,
             "max_concurrent_batches": 5,
-            "timeout_seconds": 300
+            "timeout_seconds": 300,
+            "evaluation_batch_size": 5
+        },
+        "validation": {
+            "enabled": True,
+            "report_all_results": False,  # If true, reports both compliant and non-compliant statements
+            "skip_unsupported_artifacts": [],  # Artifacts to skip validation entirely
+            "llm_validated_artifacts": ["procedures", "pipes"],  # Artifacts that use LLM validation instead of SQLGlot
+            "persist_compliant_batches": False  # Whether to persist batches with all compliant statements
         },
         "output": {
             "format": "json",
@@ -204,6 +212,16 @@ class DDLConfig:
             "compress_output": False,
             "base_dir": "./ddl_output",
             "timestamp_format": "%Y%m%d_%H%M%S"
+        },
+        "observability": {
+            "log_level": "INFO",
+            "log_file": None,
+            "enable_metrics": True,
+            "retry": {
+                "max_retries": 3,
+                "retry_delay": 1.0,
+                "backoff_factor": 2.0
+            }
         }
     }
 
@@ -217,6 +235,14 @@ class DDLConfig:
         "DDL_OUTPUT_FORMAT": "output.format",
         "DDL_OUTPUT_DIR": "output.base_dir",
         "DDL_INCLUDE_METADATA": ("output.include_metadata", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
+        "DDL_COMPRESS_OUTPUT": ("output.compress_output", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
+        "DDL_LOG_LEVEL": "observability.log_level",
+        "DDL_LOG_FILE": "observability.log_file",
+        "DDL_MAX_RETRIES": ("observability.retry.max_retries", int),
+        "DDL_RETRY_DELAY": ("observability.retry.retry_delay", float),
+        "DDL_VALIDATION_ENABLED": ("validation.enabled", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
+        "DDL_VALIDATION_REPORT_ALL": ("validation.report_all_results", lambda x: x.lower() in ('true', '1', 'yes', 'on')),
+        "DDL_VALIDATION_SKIP_UNSUPPORTED": ("validation.skip_unsupported_artifacts", lambda x: x.split(',') if x else []),
         "DDL_COMPRESS_OUTPUT": ("output.compress_output", lambda x: x.lower() in ('true', '1', 'yes', 'on'))
     }
 

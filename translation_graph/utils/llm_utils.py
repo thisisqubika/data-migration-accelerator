@@ -1,12 +1,48 @@
 import os
-from typing import Dict, Any
+from typing import Dict, Any, Type, Optional
 import time
+
+try:
+    from langchain_core.output_parsers import PydanticOutputParser
+except ImportError:
+    PydanticOutputParser = None
+
+from pydantic import BaseModel
 
 from config.ddl_config import create_node_llm, get_config
 
 
 def create_llm_for_node(node_name: str):
     return create_node_llm(node_name)
+
+
+def create_structured_llm(node_name: str, pydantic_model: Type[BaseModel]) -> Any:
+    """
+    Create a structured output LLM for a given node using a Pydantic model.
+    
+    Args:
+        node_name: Name of the LLM node configuration
+        pydantic_model: Pydantic BaseModel class to structure the output
+        
+    Returns:
+        LLM configured for structured output, or base LLM if structured output not supported
+    """
+    base_llm = create_llm_for_node(node_name)
+    
+    try:
+        if hasattr(base_llm, 'with_structured_output'):
+            return base_llm.with_structured_output(pydantic_model)
+    except Exception:
+        pass
+    
+    try:
+        if PydanticOutputParser is not None:
+            parser = PydanticOutputParser(pydantic_object=pydantic_model)
+            return base_llm | parser
+    except Exception:
+        pass
+    
+    return base_llm
 
 
 def validate_node_requirements() -> Dict[str, Any]:

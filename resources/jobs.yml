@@ -11,9 +11,26 @@ resources:
       tasks:
         - task_key: snowflake_ingestion_task
           python_wheel_task:
-            entry_point: main
+            entry_point: snowpark-reader
             package_name: migration_accelerator_package
           environment_key: "serverless_wheel"
+        
+        - task_key: snowflake_ingestion_validation_task
+          depends_on:
+            - task_key: snowflake_ingestion_task
+          python_wheel_task:
+            entry_point: snowflake-validator
+            package_name: migration_accelerator_package
+          environment_key: "serverless_wheel"
+        
+        - task_key: grant_flattening_task
+          depends_on:
+            - task_key: snowflake_ingestion_task
+          python_wheel_task:
+            entry_point: grant-transformer
+            package_name: migration_accelerator_package
+          environment_key: "serverless_wheel"
+              
 
       environments:
         - environment_key: "serverless_wheel"
