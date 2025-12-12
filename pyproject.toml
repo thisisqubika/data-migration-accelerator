@@ -3,7 +3,10 @@ name = "migration_accelerator_package"
 version = "0.0.1"
 description = "Reusable python logic for Snowflake - Databricks Migration."
 authors = ["Samuel Solarte samuel.solarte@qubika.com"]
-packages = [{ include = "migration_accelerator_package", from = "src" }]
+packages = [
+    { include = "migration_accelerator_package", from = "src" },
+    { include = "artifact_translation_package", from = "src" }
+]
 
 
 [tool.poetry.dependencies]
@@ -13,6 +16,11 @@ snowflake-connector-python = ">=3.0.0"
 snowflake-snowpark-python = ">=1.9.0"
 python-dotenv = ">=1.0.0"
 databricks-sdk = "*"
+langchain = ">=0.1.0"
+langchain-core = ">=0.1.0"
+langchain-community = ">=0.1.0"
+langgraph = ">=0.1.0"
+databricks-langchain = ">=0.1.0"
 
 
 [build-system]
@@ -24,5 +32,6 @@ migration-accelerator = "migration_accelerator_package.main:main"
 snowpark-reader = "migration_accelerator_package.snowpark:main"
 snowflake-validator = "migration_accelerator_package.ingestion_validation:main"
 grant-transformer = "migration_accelerator_package.grant_transformation:main"
+translation-module = "artifact_translation_package.databricks_job:databricks_entrypoint"
 
 

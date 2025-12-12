@@ -227,6 +227,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+.DS_Store
+
 /translation_graph/tests/integration/ddl_output/failed_batches/
 /translation_graph/output/
 /translation_graph/ddl_output/
