@@ -9,16 +9,13 @@ configuration.
 
 import os
 import json
-import sys
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-# Add current directory to path for imports
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from graph_builder import build_translation_graph
-from utils.file_processor import create_batches_from_file, process_files
-from utils.types import ArtifactBatch
+from artifact_translation_package.graph_builder import build_translation_graph
+from artifact_translation_package.utils.file_processor import create_batches_from_file, process_files
+from artifact_translation_package.utils.types import ArtifactBatch
 
 
 def get_dbfs_path(filepath: str) -> str:
