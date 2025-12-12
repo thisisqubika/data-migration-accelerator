@@ -1,5 +1,12 @@
 from enum import Enum
 
+class UnityCatalogConfig(Enum):
+    """Unity Catalog configuration for translation package"""
+    CATALOG = "qubika_partner_solutions"
+    SCHEMA = "migration_accelerator"
+    RAW_VOLUME = "snowflake_artifacts_raw"
+    
+
 class LangGraphConfig(Enum):
     DBX_ENDPOINT= "databricks-llama-4-maverick"
 

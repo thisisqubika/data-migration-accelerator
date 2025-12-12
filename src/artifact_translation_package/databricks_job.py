@@ -16,6 +16,7 @@ from pathlib import Path
 from artifact_translation_package.graph_builder import build_translation_graph
 from artifact_translation_package.utils.file_processor import create_batches_from_file, process_files
 from artifact_translation_package.utils.types import ArtifactBatch
+from artifact_translation_package.config.constants import UnityCatalogConfig, LangGraphConfig
 
 
 def get_dbfs_path(filepath: str) -> str:
@@ -386,6 +387,46 @@ def main():
     print(f"Total results: {result.get('metadata', {}).get('total_results', 0)}")
     print(f"Errors: {len(result.get('metadata', {}).get('errors', []))}")
 
+def databricks_entrypoint():
+    """
+    Simplified entry point for Databricks jobs using configuration constants.
+    No CLI arguments required - uses constants directly.
+    """    
+    # Use constants directly - no environment variables or complex logic
+    volume_path = (
+        f"/Volumes/"
+        f"{UnityCatalogConfig.CATALOG.value}/"
+        f"{UnityCatalogConfig.SCHEMA.value}/"
+        f"{UnityCatalogConfig.RAW_VOLUME.value}/"
+    )
+    batch_size = LangGraphConfig.DDL_BATCH_SIZE.value
+    output_format = LangGraphConfig.DDL_OUTPUT_FORMAT.value
+    output_path = None  # Optional - can be None for in-memory results
+    
+    print("=" * 60)
+    print("Databricks Translation Job Starting")
+    print("=" * 60)
+    print(f"Volume Path:   {volume_path}")
+    print(f"Batch Size:    {batch_size}")
+    print(f"Output Format: {output_format}")
+    print(f"Output Path:   {output_path or 'In-memory (no file output)'}")
+    print("-" * 60)
+    
+    result = process_from_volume(
+        volume_path=volume_path,
+        batch_size=batch_size,
+        output_format=output_format,
+        output_path=output_path
+    )
+    
+    print("\n" + "=" * 60)
+    print("Translation Job Completed")
+    print("=" * 60)
+    print(f"Total Results: {result.get('metadata', {}).get('total_results', 0)}")
+    print(f"Errors:        {len(result.get('metadata', {}).get('errors', []))}")
+    print("=" * 60)
+    
+    return result
 
 if __name__ == "__main__":
     main()
