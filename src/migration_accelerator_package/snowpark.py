@@ -12,9 +12,10 @@ from databricks.sdk.runtime import dbutils
 from migration_accelerator_package import constants
 from migration_accelerator_package.artifact_readers import (
     ArtifactReaderFactory,
-    TablesReader
+    TablesReader,
 )
 from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
+from migration_accelerator_package.logging_utils import get_app_logger
 
 def get_secret(secret_name):
     """Retrieve secrets from Databricks secret scope"""
@@ -23,6 +24,10 @@ def get_secret(secret_name):
     except Exception as e:
         # Fallback to environment variables for local development
         return os.getenv(secret_name, "")
+
+
+# Application logger (visible in Databricks stdout / cluster logs)
+logger = get_app_logger("snowpark-reader")
 
 
 # Connection parameters from environment variables
@@ -150,7 +155,7 @@ class SnowparkObjectReader:
     
     def get_all_objects(self) -> Dict[str, Any]:
         """Get all database objects in one call using artifact readers."""
-        print("\n📊 Reading all Snowflake objects using Snowpark...")
+        logger.info("📊 Reading all Snowflake objects using Snowpark")
         
         objects = {
             'database': self.database,
@@ -162,9 +167,9 @@ class SnowparkObjectReader:
             try:
                 artifacts = self._readers[artifact_type].read()
                 objects[artifact_type.value] = artifacts
-                print(f"✓ Found {len(artifacts)} {artifact_type.value}")
+                logger.info(f"✓ Found {len(artifacts)} {artifact_type.value}")
             except Exception as e:
-                print(f"  ⚠ Warning: Error reading {artifact_type.value}: {str(e)[:100]}")
+                logger.warning(f"⚠ Error reading {artifact_type.value}: {str(e)[:100]}")
                 objects[artifact_type.value] = []
         
         # Add column details and sample data for each table
@@ -180,7 +185,7 @@ class SnowparkObjectReader:
                 except Exception as e:
                     table['sample_data'] = f"Error retrieving data: {str(e)}"
             else:
-                print(f"  ⚠ Warning: Could not find table_name in table object: {list(table.keys())}")
+                logger.warning(f"⚠ Could not find table_name in table object: {list(table.keys())}")
                 table['columns'] = []
                 table['sample_data'] = "Error: table_name not found"
         
@@ -274,8 +279,8 @@ class SnowparkObjectReader:
     
     def query_specific_objects(self):
         """Query the specific test objects from snowflake_test_objects.sql"""
-        print("\n🔍 Querying specific test objects...")
-        print("  (Note: Objects must be created first by running snowflake_test_objects.sql)")
+        logger.info("🔍 Querying specific test objects")
+        logger.info("Objects must be created first by running snowflake_test_objects.sql")
         
         results = {}
         
@@ -284,16 +289,16 @@ class SnowparkObjectReader:
         for table_name in table_names:
             try:
                 if self.object_exists(table_name, 'TABLE'):
-                    print(f"  - Querying {table_name} table...")
+                    logger.info(f"Querying {table_name} table")
                     table = self.session.table(f'{self.database}.{self.schema}.{table_name}')
                     data = table.collect()
                     results[table_name] = [dict(row.as_dict()) for row in data]
-                    print(f"    ✓ Found {len(results[table_name])} rows")
+                    logger.info(f"✓ Found {len(results[table_name])} rows for {table_name}")
                 else:
-                    print(f"  - ⚠ {table_name} table does not exist (run snowflake_test_objects.sql to create it)")
+                    logger.warning(f"⚠ {table_name} table does not exist (run snowflake_test_objects.sql to create it)")
                     results[table_name] = None
             except Exception as e:
-                print(f"    ✗ Error querying {table_name}: {str(e)[:100]}")
+                logger.error(f"✗ Error querying {table_name}: {str(e)[:100]}")
                 results[table_name] = None
         
         # Query views
@@ -307,20 +312,20 @@ class SnowparkObjectReader:
         for view_name in view_names:
             try:
                 if self.object_exists(view_name, 'VIEW'):
-                    print(f"  - Querying {view_name} view...")
+                    logger.info(f"Querying {view_name} view")
                     view = self.session.table(f'{self.database}.{self.schema}.{view_name}')
                     data = view.collect()
                     results[view_name] = [dict(row.as_dict()) for row in data]
-                    print(f"    ✓ Found {len(results[view_name])} rows")
+                    logger.info(f"✓ Found {len(results[view_name])} rows for {view_name}")
                 else:
-                    print(f"  - ⚠ {view_name} view does not exist (run snowflake_test_objects.sql to create it)")
+                    logger.warning(f"⚠ {view_name} view does not exist (run snowflake_test_objects.sql to create it)")
                     results[view_name] = None
             except Exception as e:
                 error_msg = str(e)
                 if "does not exist" in error_msg or "not authorized" in error_msg:
-                    print(f"  - ⚠ {view_name} view does not exist or not authorized")
+                    logger.warning(f"⚠ {view_name} view does not exist or not authorized")
                 else:
-                    print(f"    ✗ Error querying {view_name}: {error_msg[:100]}")
+                    logger.error(f"✗ Error querying {view_name}: {error_msg[:100]}")
                 results[view_name] = None
         
         return results
@@ -330,36 +335,31 @@ def main():
     """Main function to demonstrate usage."""
     session = None
     try:
-        print("=" * 60)
-        print("SNOWPARK OBJECT READER")
-        print("=" * 60)
-        print(f"Connecting to Snowflake account: {SFLKaccount}")
-        print(f"User: {SFLKuser}")
-        print(f"Database: {SFLKdatabase}, Schema: {SFLKschema}")
+        logger.info("SNOWPARK OBJECT READER starting")
+        logger.info(f"Connecting to Snowflake account: {SFLKaccount}")
+        logger.info(f"User: {SFLKuser}")
+        logger.info(f"Database: {SFLKdatabase}, Schema: {SFLKschema}")
         if SFLKwarehouse:
-            print(f"Warehouse: {SFLKwarehouse}")
+            logger.info(f"Warehouse: {SFLKwarehouse}")
         if SFLKregion:
-            print(f"Region: {SFLKregion}")
+            logger.info(f"Region: {SFLKregion}")
         
         # Create Snowpark session
         session = Session.builder.configs(connection_parameters).create()
-        print("✓ Successfully connected to Snowflake using Snowpark")
+        logger.info("✓ Successfully connected to Snowflake using Snowpark")
         
         # Test connection
         version = session.sql("SELECT CURRENT_VERSION()").collect()[0][0]
-        print(f"✓ Snowflake version: {version}")
+        logger.info(f"✓ Snowflake version: {version}")
         
         # Create reader
         reader = SnowparkObjectReader(session)
         
         # Get all objects
         objects = reader.get_all_objects()
-        
-        # Print summary
-        print("\n" + "=" * 60)
-        print("SNOWFLAKE OBJECTS SUMMARY")
-        print("=" * 60)
-        print(json.dumps({
+
+        # Log summary
+        summary = {
             'database': objects['database'],
             'schema': objects['schema'],
             'counts': {
@@ -378,24 +378,24 @@ def main():
                 'grants_hierarchy': len(objects['grants_hierarchy']),
                 'grants_future': len(objects['grants_future'])
             }
-        }, indent=2))
+        }
+        logger.info("SNOWFLAKE OBJECTS SUMMARY")
+        logger.info(json.dumps(summary, indent=2))
         
         # Query specific test objects
         test_objects = reader.query_specific_objects()
         
         # Save to JSON file
         reader.save_to_json()
-        
-        print("\n✓ All operations completed successfully!")
+
+        logger.info("✓ All operations completed successfully")
         
     except Exception as e:
-        print(f"\n✗ Error: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.exception(f"✗ Error: {e}")
     finally:
         if session:
             session.close()
-            print("\n✓ Session closed")
+            logger.info("✓ Session closed")
 
 
 if __name__ == '__main__':

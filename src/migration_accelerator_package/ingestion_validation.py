@@ -14,12 +14,16 @@ from migration_accelerator_package.snowpark_utils import (
 
 from migration_accelerator_package.artifact_validators import MetadataValidator
 from migration_accelerator_package.constants import SnowflakeConfig
+from migration_accelerator_package.logging_utils import get_app_logger
+from migration_accelerator_package.artifact_validators import MetadataValidator
+from migration_accelerator_package.constants import SnowflakeConfig
+
+
+logger = get_app_logger("snowflake-validator")
 
 
 def main():
-    print("=" * 80)
-    print(" SNOWFLAKE METADATA VALIDATION ")
-    print("=" * 80)
+    logger.info("SNOWFLAKE METADATA VALIDATION starting")
 
     connection_parameters = build_snowflake_connection_params()
     session = Session.builder.configs(connection_parameters).create()
@@ -28,20 +32,20 @@ def main():
     schema = SnowflakeConfig.SNOWFLAKE_SCHEMA.value
 
     volume_path = get_uc_volume_path()
-    print(f"UC Volume Path: {volume_path}")
+    logger.info(f"UC Volume Path: {volume_path}")
 
 
     validator = MetadataValidator(session, volume_path)
 
-    print("Loading extracted metadata...")
+    logger.info("Loading extracted metadata")
     extracted = validator.load_all_artifacts()
-    print("✓ Loaded all JSON files")
+    logger.info("✓ Loaded all JSON files")
 
-    print("Running completeness validation...")
+    logger.info("Running completeness validation")
     completeness_report = validator.validate_completeness(extracted, db, schema)
-    print("✓ Completeness check done")
+    logger.info("✓ Completeness check done")
 
-    print("Running correctness checks...")
+    logger.info("Running correctness checks")
 
     sample_tables = extracted["tables"]["tables"][:5]
     table_results = [
@@ -65,12 +69,12 @@ def main():
         }
     }
 
-    print("✓ Validation complete")
-    print(json.dumps(report, indent=2))
+    logger.info("✓ Validation complete")
+    logger.info(json.dumps(report, indent=2))
 
     output_path = f"{volume_path}/validation_report.json"
     dbutils.fs.put(output_path, json.dumps(report, indent=2), overwrite=True)
-    print(f"✓ Validation report saved to {output_path}")
+    logger.info(f"✓ Validation report saved to {output_path}")
 
     session.close()
 
