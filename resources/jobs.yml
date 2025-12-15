@@ -10,6 +10,7 @@ resources:
         
       tasks:
         - task_key: snowflake_ingestion_task
+          job_cluster_key: data_migration
           python_wheel_task:
             entry_point: snowpark-reader
             package_name: migration_accelerator_package
@@ -18,6 +19,7 @@ resources:
         - task_key: snowflake_ingestion_validation_task
           depends_on:
             - task_key: snowflake_ingestion_task
+          job_cluster_key: data_migration
           python_wheel_task:
             entry_point: snowflake-validator
             package_name: migration_accelerator_package
@@ -26,11 +28,17 @@ resources:
         - task_key: grant_flattening_task
           depends_on:
             - task_key: snowflake_ingestion_task
+          job_cluster_key: data_migration
           python_wheel_task:
             entry_point: grant-transformer
             package_name: migration_accelerator_package
           environment_key: "serverless_wheel"
               
+      # Use an existing all-purpose cluster named "data-migration".
+      # Set the cluster ID via var.data_migration_cluster_id.
+      job_clusters:
+        - job_cluster_key: data_migration
+          existing_cluster_id: ${var.data_migration_cluster_id}
 
       environments:
         - environment_key: "serverless_wheel"
