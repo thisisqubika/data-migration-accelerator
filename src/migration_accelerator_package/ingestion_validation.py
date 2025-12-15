@@ -15,8 +15,6 @@ from migration_accelerator_package.snowpark_utils import (
 from migration_accelerator_package.artifact_validators import MetadataValidator
 from migration_accelerator_package.constants import SnowflakeConfig
 from migration_accelerator_package.logging_utils import get_app_logger
-from migration_accelerator_package.artifact_validators import MetadataValidator
-from migration_accelerator_package.constants import SnowflakeConfig
 
 
 logger = get_app_logger("snowflake-validator")

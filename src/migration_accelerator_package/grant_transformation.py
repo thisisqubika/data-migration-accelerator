@@ -9,9 +9,6 @@ from databricks.sdk.runtime import *
 from migration_accelerator_package.snowpark_utils import get_uc_volume_path
 from migration_accelerator_package.grant_transformer import GrantFlattener
 from migration_accelerator_package.logging_utils import get_app_logger
-from migration_accelerator_package.snowpark_utils import get_uc_volume_path
-from migration_accelerator_package.grant_transformer import GrantFlattener
-from migration_accelerator_package.logging_utils import get_app_logger
 
 
 logger = get_app_logger("grant-transformer")
@@ -33,8 +30,8 @@ def main():
     volume_path = get_uc_volume_path()
     logger.info(f"UC Volume Path: {volume_path}")
 
-    # Initialize flattener
-    flattener = GrantFlattener(volume_path)
+    # Initialize flattener with logger
+    flattener = GrantFlattener(volume_path, logger=logger)
 
     # Load artifacts
     logger.info("📂 Loading governance artifacts")
