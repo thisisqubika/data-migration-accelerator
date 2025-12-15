@@ -36,8 +36,17 @@ class ConsoleLogHandler(LogHandler):
         """Write log to console."""
         timestamp = datetime.utcnow().isoformat() + "Z"
         level_name = level.name
+        # Ensure we can clearly identify logs in cluster output
+        app_tag = "MIGRATION_ACCELERATOR"
+        component = None
+        if isinstance(context, dict):
+            component = context.get("component")
         context_str = json.dumps(context) if context else "{}"
-        log_line = f"[{timestamp}] {level_name} - {message} | Context: {context_str}\n"
+        if component:
+            prefix = f"[{timestamp}] [{app_tag}] [{component}] {level_name}"
+        else:
+            prefix = f"[{timestamp}] [{app_tag}] {level_name}"
+        log_line = f"{prefix} - {message} | Context: {context_str}\n"
         sys.stdout.write(log_line)
         sys.stdout.flush()
 

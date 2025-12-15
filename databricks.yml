@@ -12,4 +12,3 @@ targets:
       tags: ${var.global_project_tag}
     vars:
       DDL_LOG_LEVEL: "DEBUG"
-      DDL_LOG_FILE: "/Volumes/qubika_partner_solutions/migration_accelerator/logs/translation_graph.log"
