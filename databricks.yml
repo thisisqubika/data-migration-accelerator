@@ -10,3 +10,6 @@ targets:
     default: true
     presets:
       tags: ${var.global_project_tag}
+    vars:
+      DDL_LOG_LEVEL: "DEBUG"
+      DDL_LOG_FILE: "/dbfs/FileStore/logs/translation_graph.log"
