@@ -34,8 +34,6 @@ resources:
             package_name: migration_accelerator_package
           environment_key: "serverless_wheel"
               
-      # Use an existing all-purpose cluster named "data-migration".
-      # Set the cluster ID via var.data_migration_cluster_id.
       job_clusters:
         - job_cluster_key: data_migration
           existing_cluster_id: ${var.data_migration_cluster_id}
