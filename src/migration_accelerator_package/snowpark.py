@@ -247,9 +247,9 @@ class SnowparkObjectReader:
                 dbutils.fs.put(volume_path, json_data, overwrite=True)
                 
                 saved_files.append(filename)
-                print(f"  ✓ Saved {artifact_key} to {filename}")
+                logger.info(f"✓ Saved {artifact_key} to {filename}")
         
-        print(f"\n✓ Saved {len(saved_files)} artifact files to Unity Catalog Volume: {base_volume_path}")
+        logger.info(f"✓ Saved {len(saved_files)} artifact files to Unity Catalog Volume: {base_volume_path}")
     
     def object_exists(self, object_name: str, object_type: str = 'TABLE') -> bool:
         """Check if an object exists in the schema."""
