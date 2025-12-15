@@ -11,4 +11,4 @@ targets:
     presets:
       tags: ${var.global_project_tag}
     vars:
-      DDL_LOG_LEVEL: "DEBUG"
+      DDL_LOG_LEVEL: "INFO"
