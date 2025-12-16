@@ -41,6 +41,7 @@ resources:
         - task_key: artifact_translation_task
           depends_on:
             - task_key: grant_flattening_task
+          existing_cluster_id: 1214-215558-eghymads
           python_wheel_task:
             entry_point: translation-module
             package_name: migration_accelerator_package
