@@ -161,7 +161,10 @@ class SequencesReader(ArtifactReader):
             return self._normalize_rows(result)
         except Exception as e:
             # Fallback: try information_schema with basic columns only
-            print(f"  ⚠ Warning: SHOW SEQUENCES failed, trying information_schema: {e}")
+            from migration_accelerator_package.logging_utils import get_app_logger
+            get_app_logger("artifact-readers").warning(
+                f"SHOW SEQUENCES failed, trying information_schema: {e}"
+            )
             query = f"""
             SELECT 
                 sequence_catalog as database_name,

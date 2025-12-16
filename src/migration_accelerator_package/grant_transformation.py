@@ -8,6 +8,10 @@ from databricks.sdk.runtime import *
 
 from migration_accelerator_package.snowpark_utils import get_uc_volume_path
 from migration_accelerator_package.grant_transformer import GrantFlattener
+from migration_accelerator_package.logging_utils import get_app_logger
+
+
+logger = get_app_logger("grant-transformer")
 
 
 def main():
@@ -21,27 +25,25 @@ def main():
     4. Save flattened grants
     5. Report statistics
     """
-    print("=" * 80)
-    print(" GRANT FLATTENING TRANSFORMATION ")
-    print("=" * 80)
+    logger.info("GRANT FLATTENING TRANSFORMATION starting")
 
     volume_path = get_uc_volume_path()
-    print(f"UC Volume Path: {volume_path}")
+    logger.info(f"UC Volume Path: {volume_path}")
 
-    # Initialize flattener
-    flattener = GrantFlattener(volume_path)
+    # Initialize flattener with logger
+    flattener = GrantFlattener(volume_path, logger=logger)
 
     # Load artifacts
-    print("\n📂 Loading governance artifacts...")
+    logger.info("📂 Loading governance artifacts")
     artifacts = flattener.load_artifacts()
-    print(f"✓ Loaded {len(artifacts['roles'])} roles")
-    print(f"✓ Loaded {len(artifacts['privileges'])} privilege grants")
-    print(f"✓ Loaded {len(artifacts['hierarchy'])} hierarchy relationships")
+    logger.info(f"✓ Loaded {len(artifacts['roles'])} roles")
+    logger.info(f"✓ Loaded {len(artifacts['privileges'])} privilege grants")
+    logger.info(f"✓ Loaded {len(artifacts['hierarchy'])} hierarchy relationships")
 
     # Flatten privileges (hierarchy graph built internally)
-    print("\n🔄 Flattening privileges...")
+    logger.info("🔄 Flattening privileges")
     flattened = flattener.flatten_privileges()
-    print(f"✓ Generated {len(flattened)} flattened privilege grants")
+    logger.info(f"✓ Generated {len(flattened)} flattened privilege grants")
 
     # Calculate statistics
     direct_count = sum(1 for p in flattened if p['source'] == 'direct')
@@ -55,11 +57,11 @@ def main():
         "expansion_ratio": round(len(flattened) / len(artifacts['privileges']), 2) if artifacts['privileges'] else 0
     }
 
-    print("\n📊 Transformation Statistics:")
-    print(json.dumps(stats, indent=2))
+    logger.info("📊 Transformation Statistics")
+    logger.info(json.dumps(stats, indent=2))
 
     # Save flattened grants
-    print("\n💾 Saving flattened grants...")
+    logger.info("💾 Saving flattened grants")
     metadata = {
         "database": artifacts.get('database'),
         "schema": artifacts.get('schema')
@@ -67,9 +69,9 @@ def main():
     flattener.save_flattened_grants(flattened, metadata)
     
     output_path = f"{volume_path}/grants_flattened.json"
-    print(f"✓ Saved flattened grants to {output_path}")
+    logger.info(f"✓ Saved flattened grants to {output_path}")
 
-    print("\n✓ Grant flattening transformation complete!")
+    logger.info("✓ Grant flattening transformation complete")
 
 
 if __name__ == "__main__":

@@ -3,8 +3,8 @@ from enum import Enum
 class SnowflakeConfig(Enum):
     SNOWFLAKE_ROLE = "SYSADMIN"
     SNOWFLAKE_WAREHOUSE = "COMPUTE_WH"
-    SNOWFLAKE_DATABASE = "DATA_MIGRATION_DB"
-    SNOWFLAKE_SCHEMA = "DATA_MIGRATION_SCHEMA"
+    SNOWFLAKE_DATABASE = "LVDMS"
+    SNOWFLAKE_SCHEMA = "LVDMS"
 
 class UnityCatalogConfig(Enum):
     CATALOG = "qubika_partner_solutions"

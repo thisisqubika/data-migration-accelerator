@@ -6,6 +6,10 @@ import json
 import os
 from databricks.sdk.runtime import dbutils
 from migration_accelerator_package.constants import SnowflakeConfig, UnityCatalogConfig
+from migration_accelerator_package.logging_utils import get_app_logger
+
+# Module-level logger for utility functions (uses app logger format)
+_utils_logger = get_app_logger("utils")
 
 
 def get_secret(secret_name: str):
@@ -55,5 +59,5 @@ def load_json_from_volume(volume_path: str, filename: str) -> dict:
         raw = dbutils.fs.head(path, 50_000_000)  # 50 MB max
         return json.loads(raw)
     except Exception as e:
-        print(f"  ⚠ Warning: Could not load {filename}: {e}")
+        _utils_logger.warning(f"Could not load {filename}: {e}")
         return {}

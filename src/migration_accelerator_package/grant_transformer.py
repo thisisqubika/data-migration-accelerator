@@ -3,7 +3,8 @@ Grant Flattening Transformer
 Provides transformation logic for flattening Snowflake role hierarchies
 """
 import json
-from typing import Dict, List, Any, Set
+import logging
+from typing import Dict, List, Any, Set, Optional
 from databricks.sdk.runtime import dbutils
 from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
 from migration_accelerator_package.snowpark_utils import load_json_from_volume
@@ -14,14 +15,21 @@ class GrantFlattener:
     suitable for Databricks Unity Catalog groups.
     """
     
-    def __init__(self, volume_path: str):
+    def __init__(self, volume_path: str, logger: Optional[logging.Logger] = None):
         """
         Initialize the flattener with Unity Catalog volume path.
+        
+        Args:
+            volume_path: Unity Catalog volume path
+            logger: Optional logger instance (defaults to app logger for grant-transformer)
         """
+        from migration_accelerator_package.logging_utils import get_app_logger
+        
         self.volume_path = volume_path
         self.roles = []
         self.privileges = []
         self.hierarchy = []
+        self.logger = logger or get_app_logger("grant-transformer")
     
     def load_artifacts(self) -> Dict[str, Any]:
         """
@@ -152,7 +160,7 @@ class GrantFlattener:
             List of all privileges (direct + inherited) for this role
         """
         if role in visited:
-            print(f"  ⚠ Warning: Circular dependency detected at role '{role}'. Skipping inheritance to prevent loop.")
+            self.logger.warning(f"Circular dependency detected at role '{role}'. Skipping inheritance to prevent loop.")
             return []
 
         visited.add(role)
@@ -172,7 +180,7 @@ class GrantFlattener:
 
         for parent in parent_roles:
             if parent not in direct_privileges:
-                print(f"  ⚠ Warning: Parent role '{parent}' referenced in hierarchy but missing from roles.json")
+                self.logger.warning(f"Parent role '{parent}' referenced in hierarchy but missing from roles.json")
                 continue
 
             inherited_privs = self._flatten_role(
@@ -246,10 +254,10 @@ class GrantFlattener:
             "grants_flattened": flattened
         }
 
-        print("✓ Flattening complete")
-        print(json.dumps(output, indent=2))
+        self.logger.info("✓ Flattening complete")
+        self.logger.debug(json.dumps(output, indent=2))
 
         output_path = f"{self.volume_path}/grants_flattened.json"
         dbutils.fs.put(output_path, json.dumps(output, indent=2), overwrite=True)
 
-        print(f"✓ Flattened grants saved to {output_path}")
+        self.logger.info(f"✓ Flattened grants saved to {output_path}")

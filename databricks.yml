@@ -10,3 +10,5 @@ targets:
     default: true
     presets:
       tags: ${var.global_project_tag}
+    vars:
+      DDL_LOG_LEVEL: "INFO"
