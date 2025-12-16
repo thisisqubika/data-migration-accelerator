@@ -42,38 +42,6 @@ class ConsoleLogHandler(LogHandler):
         sys.stdout.flush()
 
 
-class FileLogHandler(LogHandler):
-    """File log handler."""
-    
-    def __init__(self, file_path: str):
-        """Initialize file handler."""
-        self.file_path = file_path
-        self._file = None
-    
-    def handle(self, level: LogLevel, message: str, context: Dict[str, Any]) -> None:
-        """Write log to file."""
-        if self._file is None:
-            self._file = open(self.file_path, 'a', encoding='utf-8')
-        
-        timestamp = datetime.utcnow().isoformat() + "Z"
-        level_name = level.name
-        context_str = json.dumps(context) if context else "{}"
-        log_entry = {
-            "timestamp": timestamp,
-            "level": level_name,
-            "message": message,
-            "context": context
-        }
-        self._file.write(json.dumps(log_entry) + "\n")
-        self._file.flush()
-    
-    def close(self):
-        """Close the file."""
-        if self._file:
-            self._file.close()
-            self._file = None
-
-
 class Logger:
     """
     Structured logger with multiple output handlers.
