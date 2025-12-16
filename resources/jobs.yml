@@ -37,7 +37,6 @@ resources:
           python_wheel_task:
             entry_point: grant-transformer
             package_name: migration_accelerator_package
-          environment_key: "serverless_wheel"
 
         - task_key: artifact_translation_task
           depends_on:
@@ -45,7 +44,6 @@ resources:
           python_wheel_task:
             entry_point: translation-module
             package_name: migration_accelerator_package
-          environment_key: "serverless_wheel"
               
       # Using existing cluster "data-migration" (ID: 1214-215558-eghymads); no job_clusters or spark_version needed.
 
