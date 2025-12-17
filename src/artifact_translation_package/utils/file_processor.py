@@ -27,7 +27,7 @@ def determine_artifact_type_from_filename(filename: str) -> Optional[str]:
         "stages": ["stage", "stages"],
         "streams": ["stream", "streams"],
         "pipes": ["pipe", "pipes"],
-        "grants": ["grant", "grants"],
+        "grants": ["grant", "grants", "grants_flattened"],
         "tags": ["tag", "tags"],
         "comments": ["comment", "comments"],
         "masking_policies": ["masking_policy", "masking_policies", "masking", "policy"],
@@ -89,19 +89,23 @@ def extract_artifacts_from_json(
     Raises:
         KeyError: If the artifact type key is not found in JSON
     """
-    if artifact_type not in json_data:
+    # Use mapping for special artifact types (e.g., 'grants' -> 'grants_flattened')
+    key_mapping = get_json_key_mapping()
+    json_key = key_mapping.get(artifact_type, artifact_type)
+
+    if json_key not in json_data:
         raise KeyError(
-            f"Artifact type '{artifact_type}' not found in JSON. "
+            f"Artifact type '{artifact_type}' (mapped to '{json_key}') not found in JSON. "
             f"Available keys: {list(json_data.keys())}"
         )
-    
-    artifacts = json_data[artifact_type]
-    
+
+    artifacts = json_data[json_key]
+
     if not isinstance(artifacts, list):
         raise ValueError(
-            f"Expected '{artifact_type}' to be a list, got {type(artifacts).__name__}"
+            f"Expected '{json_key}' to be a list, got {type(artifacts).__name__}"
         )
-    
+
     return [json.dumps(artifact) for artifact in artifacts]
 
 
