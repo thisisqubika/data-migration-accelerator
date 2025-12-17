@@ -1,0 +1,56 @@
+{
+  "batch": {
+    "artifact_type": "views",
+    "items": [
+      "{\"database_name\": \"DATA_MIGRATION_DB\", \"schema_name\": \"DATA_MIGRATION_SCHEMA\", \"view_name\": \"ACTIVE_USERS_VIEW\", \"view_definition\": \"SELECT u.user_id, u.email, u.created_at, p.profile_status FROM users u LEFT JOIN user_profiles p ON u.user_id = p.user_id WHERE u.is_active = true\", \"created\": \"2025-01-15 10:30:00.000000-08:00\", \"last_altered\": \"2025-01-20 14:45:00.000000-08:00\", \"comment\": \"View showing active users with their profile status\"}",
+      "{\"database_name\": \"DATA_MIGRATION_DB\", \"schema_name\": \"DATA_MIGRATION_SCHEMA\", \"view_name\": \"SALES_SUMMARY_VIEW\", \"view_definition\": \"SELECT DATE_TRUNC('month', order_date) as month, product_category, SUM(order_amount) as total_sales, COUNT(*) as order_count FROM sales_orders WHERE order_status = 'completed' GROUP BY DATE_TRUNC('month', order_date), product_category\", \"created\": \"2025-01-10 09:15:00.000000-08:00\", \"last_altered\": \"2025-01-25 16:20:00.000000-08:00\", \"comment\": \"Monthly sales summary by product category\"}",
+      "{\"database_name\": \"DATA_MIGRATION_DB\", \"schema_name\": \"DATA_MIGRATION_SCHEMA\", \"view_name\": \"INVENTORY_STATUS_VIEW\", \"view_definition\": \"SELECT p.product_id, p.product_name, p.category, i.quantity_available, i.last_inventory_update, CASE WHEN i.quantity_available < 10 THEN 'LOW_STOCK' WHEN i.quantity_available = 0 THEN 'OUT_OF_STOCK' ELSE 'IN_STOCK' END as stock_status FROM products p INNER JOIN inventory i ON p.product_id = i.product_id\", \"created\": \"2025-01-05 11:00:00.000000-08:00\", \"last_altered\": \"2025-01-18 13:30:00.000000-08:00\", \"comment\": \"Current inventory status with stock level indicators\"}"
+    ],
+    "context": {
+      "source_file": "/Users/facundosentena/Desktop/data-foundation-accelerators/data-migration-accelerator/src/artifact_translation_package/tests/integration/example_data/views.json",
+      "batch_index": 0,
+      "total_batches": 1
+    },
+    "original_batch_size": 3,
+    "evaluated_count": 3
+  },
+  "translation_result": {
+    "artifact_type": "views",
+    "results": [
+      "CREATE VIEW users_with_profiles AS\nSELECT u.user_id, u.email, u.created_at, p.profile_status \nFROM users u \nLEFT JOIN user_profiles p \nON u.user_id = p.user_id \nWHERE u.is_active = true;",
+      "CREATE OR REPLACE VIEW sales_order_summary AS\nSELECT \n  DATE_TRUNC('month', order_date) as month, \n  product_category, \n  SUM(order_amount) as total_sales, \n  COUNT(*) as order_count \nFROM \n  sales_orders \nWHERE \n  order_status = 'completed' \nGROUP BY \n  1, \n  product_category;",
+      "CREATE OR REPLACE VIEW product_stock_status AS\nSELECT \n  p.product_id, \n  p.product_name, \n  p.category, \n  i.quantity_available, \n  i.last_inventory_update, \n  CASE \n    WHEN i.quantity_available < 10 THEN 'LOW_STOCK' \n    WHEN i.quantity_available = 0 THEN 'OUT_OF_STOCK' \n    ELSE 'IN_STOCK' \n  END as stock_status \nFROM products p \nINNER JOIN inventory i \nON p.product_id = i.product_id;"
+    ],
+    "errors": [],
+    "metadata": {
+      "count": 3,
+      "processed": 3,
+      "original_count": 3,
+      "evaluated_count": 3
+    }
+  },
+  "validation": {
+    "results": [
+      {
+        "sql_statement": "CREATE VIEW users_with_profiles AS\nSELECT u.user_id, u.email, u.created_at, p.profile_status \nFROM users u \nLEFT JOIN user_profiles p \nON u.user_id = p.user_id \nWHERE u.is_active = true;",
+        "syntax_valid": true,
+        "error_message": null
+      },
+      {
+        "sql_statement": "CREATE OR REPLACE VIEW sales_order_summary AS\nSELECT \n  DATE_TRUNC('month', order_date) as month, \n  product_category, \n  SUM(order_amount) as total_sales, \n  COUNT(*) as order_count \nFROM \n  sales_orders \nWHERE \n  order_status = 'completed' \nGROUP BY \n  1, \n  product_category;",
+        "syntax_valid": true,
+        "error_message": null
+      },
+      {
+        "sql_statement": "CREATE OR REPLACE VIEW product_stock_status AS\nSELECT \n  p.product_id, \n  p.product_name, \n  p.category, \n  i.quantity_available, \n  i.last_inventory_update, \n  CASE \n    WHEN i.quantity_available < 10 THEN 'LOW_STOCK' \n    WHEN i.quantity_available = 0 THEN 'OUT_OF_STOCK' \n    ELSE 'IN_STOCK' \n  END as stock_status \nFROM products p \nINNER JOIN inventory i \nON p.product_id = i.product_id;",
+        "syntax_valid": true,
+        "error_message": null
+      }
+    ],
+    "total_statements": 3,
+    "valid_statements": 3,
+    "invalid_statements": 0,
+    "validation_method": "syntax_validator"
+  },
+  "timestamp": "20251216_165823"
+}
