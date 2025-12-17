@@ -139,14 +139,16 @@ def create_batches_from_file(
         json.JSONDecodeError: If the file is not valid JSON
     """
     artifact_type = determine_artifact_type_from_filename(filepath)
-    
+
     if artifact_type is None:
-        raise ValueError(
-            f"Cannot determine artifact type from filename: {filepath}. "
-            f"Filename should contain one of: tables, views, schemas, databases, "
-            f"procedures, roles, stages, streams, pipes, grants, tags, comments, "
-            f"masking_policies, udfs, sequences, file_formats, external_locations"
+        logging.warning(
+            "Cannot determine artifact type from filename: %s. Skipping file.\n"
+            "Filename should contain one of: tables, views, schemas, databases, "
+            "procedures, roles, stages, streams, pipes, grants, tags, comments, "
+            "masking_policies, udfs, sequences, file_formats, external_locations",
+            filepath,
         )
+        return []
     
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"File not found: {filepath}")
