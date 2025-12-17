@@ -22,7 +22,10 @@ from artifact_translation_package.nodes.sequences_translation import translate_s
 from artifact_translation_package.nodes.file_formats_translation import translate_file_formats
 from artifact_translation_package.nodes.external_locations_translation import translate_external_locations
 from artifact_translation_package.nodes.aggregator import aggregate_translations
+from artifact_translation_package.nodes.syntax_evaluation import evaluate_batch
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
+from artifact_translation_package.utils.observability import initialize, finalize, get_observability
+from artifact_translation_package.utils.logger import LogLevel
 
 
 class TranslationState(TypedDict):
@@ -32,6 +35,7 @@ class TranslationState(TypedDict):
     final_result: Optional[Dict[str, Any]]
     errors: List[str]
     target_node: Optional[str]
+    evaluation_results: List[Dict[str, Any]]
 
 
 def router_node(state: TranslationState) -> TranslationState:
@@ -179,6 +183,45 @@ def translate_file_formats_node(state: TranslationState) -> TranslationState:
     return {**state, "results": state["results"] + [result]}
 
 
+def evaluation_node(state: TranslationState) -> TranslationState:
+    """
+    Evaluate the last translation result for SQL syntax validity.
+    
+    Runs after each translation node to check if the SQL syntax is valid.
+    Always persists validation results to a file.
+    """
+    if not state["batch"] or not state["results"]:
+        return state
+    
+    last_result = state["results"][-1]
+    all_valid, persisted_file, validation_result = evaluate_batch(state["batch"], last_result)
+    
+    evaluation_results = state.get("evaluation_results", [])
+    
+    if not all_valid:
+        evaluation_result_info = {
+            "batch": {
+                "artifact_type": state["batch"].artifact_type,
+                "items": state["batch"].items,
+                "context": state["batch"].context
+            },
+            "translation_result": {
+                "artifact_type": last_result.artifact_type,
+                "results": last_result.results,
+                "errors": last_result.errors,
+                "metadata": last_result.metadata
+            },
+            "validation_result": validation_result.model_dump() if hasattr(validation_result, 'model_dump') else validation_result,
+            "persisted_file": persisted_file
+        }
+        evaluation_results = evaluation_results + [evaluation_result_info]
+    
+    return {
+        **state,
+        "evaluation_results": evaluation_results
+    }
+
+
 def aggregator_node(state: TranslationState) -> TranslationState:
     """Aggregate all translation results into final output."""
     if not state["results"]:
@@ -186,11 +229,13 @@ def aggregator_node(state: TranslationState) -> TranslationState:
             "metadata": {
                 "total_results": 0,
                 "errors": state["errors"],
-                "processing_stats": {}
+                "processing_stats": {},
+                "evaluation_results_count": len(state.get("evaluation_results", []))
             }
         }
     else:
-        final_result = aggregate_translations(*state["results"])
+        evaluation_results = state.get("evaluation_results", [])
+        final_result = aggregate_translations(*state["results"], evaluation_results=evaluation_results)
 
     return {**state, "final_result": final_result}
 
@@ -204,7 +249,20 @@ def route_to_translation_node(state: TranslationState) -> str:
 
 
 class TranslationGraph:
-    def __init__(self):
+    def __init__(self, run_id: Optional[str] = None, log_level: LogLevel = LogLevel.INFO, log_file: Optional[str] = None):
+        """
+        Initialize translation graph with observability.
+        
+        Args:
+            run_id: Unique identifier for this run
+            log_level: Minimum log level
+            log_file: Optional path to log file
+        """
+        # Initialize observability
+        self.obs = initialize(run_id=run_id, log_level=log_level, log_file=log_file)
+        self.logger = self.obs.get_logger("translation_graph")
+        self.logger.info("Translation graph initialized", context={"run_id": run_id})
+        
         # Create the StateGraph
         self.graph = StateGraph(TranslationState)
 
@@ -227,6 +285,7 @@ class TranslationGraph:
         self.graph.add_node("translate_procedures", translate_procedures_node)
         self.graph.add_node("translate_sequences", translate_sequences_node)
         self.graph.add_node("translate_file_formats", translate_file_formats_node)
+        self.graph.add_node("evaluation", evaluation_node)
         self.graph.add_node("aggregator", aggregator_node)
 
         # Set entry point
@@ -257,7 +316,7 @@ class TranslationGraph:
             }
         )
 
-        # Add edges from all translation nodes to aggregator
+        # Add edges from all translation nodes to evaluation, then to aggregator
         translation_nodes = [
             "translate_databases", "translate_schemas", "translate_tables", "translate_views",
             "translate_stages", "translate_external_locations", "translate_streams", "translate_pipes",
@@ -267,7 +326,9 @@ class TranslationGraph:
         ]
 
         for node in translation_nodes:
-            self.graph.add_edge(node, "aggregator")
+            self.graph.add_edge(node, "evaluation")
+        
+        self.graph.add_edge("evaluation", "aggregator")
 
         # Add edge from aggregator to END
         self.graph.add_edge("aggregator", END)
@@ -277,16 +338,40 @@ class TranslationGraph:
 
     def run(self, batch: ArtifactBatch) -> Dict[str, Any]:
         """Process a single batch through the translation graph."""
-        initial_state: TranslationState = {
-            "batch": batch,
-            "results": [],
-            "final_result": None,
-            "errors": [],
-            "target_node": None
-        }
+        self.logger.info("Starting translation graph execution", context={
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+        
+        try:
+            initial_state: TranslationState = {
+                "batch": batch,
+                "results": [],
+                "final_result": None,
+                "errors": [],
+                "target_node": None,
+                "evaluation_results": []
+            }
 
-        final_state = self.compiled_graph.invoke(initial_state)
-        return final_state["final_result"] or {}
+            final_state = self.compiled_graph.invoke(initial_state)
+            result = final_state["final_result"] or {}
+            
+            # Add observability summary to results
+            summary = finalize()
+            result["observability"] = summary
+            
+            self.logger.info("Translation graph execution completed", context={
+                "artifact_type": batch.artifact_type,
+                "success": True
+            })
+            
+            return result
+        except Exception as e:
+            self.logger.error("Translation graph execution failed", context={
+                "artifact_type": batch.artifact_type
+            }, error=str(e))
+            summary = finalize()
+            raise
 
     def run_batches(self, batches: List[ArtifactBatch]) -> Dict[str, Any]:
         """
@@ -298,6 +383,8 @@ class TranslationGraph:
         Returns:
             Aggregated translation results
         """
+        self.logger.info("Starting batch processing", context={"batch_count": len(batches)})
+        
         all_results = []
 
         for batch in batches:
@@ -338,9 +425,13 @@ class TranslationGraph:
                         merged_result["metadata"]["total_results"] += result["metadata"].get("total_results", 0)
                         merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
                         merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
+                    elif key == "observability":
+                        # Keep only the last observability summary
+                        merged_result["observability"] = value
                     elif key in merged_result:
                         merged_result[key].extend(value)
 
+            self.logger.info("Batch processing completed", context={"total_batches": len(batches)})
             return merged_result
 
         return {
@@ -352,5 +443,20 @@ class TranslationGraph:
         }
 
 
-def build_translation_graph() -> TranslationGraph:
-    return TranslationGraph()
+def build_translation_graph(
+    run_id: Optional[str] = None,
+    log_level: LogLevel = LogLevel.INFO,
+    log_file: Optional[str] = None
+) -> TranslationGraph:
+    """
+    Build translation graph with observability.
+    
+    Args:
+        run_id: Unique identifier for this run
+        log_level: Minimum log level
+        log_file: Optional path to log file
+        
+    Returns:
+        TranslationGraph instance
+    """
+    return TranslationGraph(run_id=run_id, log_level=log_level, log_file=log_file)

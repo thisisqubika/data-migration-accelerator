@@ -47,16 +47,11 @@ def determine_artifact_type_from_filename(filename: str) -> Optional[str]:
 
 def get_json_key_mapping():
     """Get mapping from artifact types to JSON keys in files."""
+    # Map artifact_type used by the CLI to the actual JSON key in input files
     return {
-        "udfs": "functions"  # Snowflake uses "functions" but we call them "udfs"
+        "udfs": "functions",  # Snowflake uses "functions" but we call them "udfs"
+        "grants": "grants_flattened"
     }
-    
-    for artifact_type, keywords in artifact_type_mapping.items():
-        for keyword in keywords:
-            if keyword in basename:
-                return artifact_type
-    
-    return None
 
 
 def load_json_file(filepath: str) -> Dict[str, Any]:

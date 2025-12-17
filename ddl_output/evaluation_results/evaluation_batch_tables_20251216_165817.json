@@ -1,0 +1,49 @@
+{
+  "batch": {
+    "artifact_type": "tables",
+    "items": [
+      "{\"database_name\": \"DATA_MIGRATION_DB\", \"schema_name\": \"DATA_MIGRATION_SCHEMA\", \"table_name\": \"EXAMPLE_TABLE_1\", \"table_type\": \"BASE TABLE\", \"row_count\": 0, \"bytes\": 0, \"created\": \"2025-01-01 12:00:00.000000-08:00\", \"last_altered\": \"2025-01-01 12:00:00.000000-08:00\", \"comment\": \"Example table for testing\", \"columns\": [{\"column_name\": \"ID\", \"data_type\": \"NUMBER\", \"character_maximum_length\": null, \"numeric_precision\": 38, \"numeric_scale\": 0, \"is_nullable\": \"NO\", \"column_default\": null, \"comment\": \"Primary key\"}, {\"column_name\": \"NAME\", \"data_type\": \"VARCHAR\", \"character_maximum_length\": 255, \"numeric_precision\": null, \"numeric_scale\": null, \"is_nullable\": \"YES\", \"column_default\": null, \"comment\": \"Name field\"}, {\"column_name\": \"CREATED_AT\", \"data_type\": \"TIMESTAMP_NTZ\", \"character_maximum_length\": null, \"numeric_precision\": null, \"numeric_scale\": null, \"is_nullable\": \"YES\", \"column_default\": \"CURRENT_TIMESTAMP()\", \"comment\": \"Creation timestamp\"}]}",
+      "{\"database_name\": \"DATA_MIGRATION_DB\", \"schema_name\": \"DATA_MIGRATION_SCHEMA\", \"table_name\": \"EXAMPLE_TABLE_2\", \"table_type\": \"BASE TABLE\", \"row_count\": 0, \"bytes\": 0, \"created\": \"2025-01-01 12:00:00.000000-08:00\", \"last_altered\": \"2025-01-01 12:00:00.000000-08:00\", \"comment\": \"Second example table\", \"columns\": [{\"column_name\": \"USER_ID\", \"data_type\": \"NUMBER\", \"character_maximum_length\": null, \"numeric_precision\": 38, \"numeric_scale\": 0, \"is_nullable\": \"NO\", \"column_default\": null, \"comment\": null}, {\"column_name\": \"EMAIL\", \"data_type\": \"VARCHAR\", \"character_maximum_length\": 100, \"numeric_precision\": null, \"numeric_scale\": null, \"is_nullable\": \"NO\", \"column_default\": null, \"comment\": \"User email address\"}]}"
+    ],
+    "context": {
+      "source_file": "/Users/facundosentena/Desktop/data-foundation-accelerators/data-migration-accelerator/src/artifact_translation_package/tests/integration/example_data/tables.json",
+      "batch_index": 0,
+      "total_batches": 1
+    },
+    "original_batch_size": 2,
+    "evaluated_count": 2
+  },
+  "translation_result": {
+    "artifact_type": "tables",
+    "results": [
+      "CREATE TABLE IF NOT EXISTS DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_1 (\n  ID BIGINT NOT NULL COMMENT 'Primary key',\n  NAME VARCHAR(255) NULL COMMENT 'Name field',\n  CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP() COMMENT 'Creation timestamp'\n) COMMENT 'Example table for testing';",
+      "CREATE TABLE IF NOT EXISTS DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_2 (\n  USER_ID BIGINT NOT NULL,\n  EMAIL VARCHAR(100) NOT NULL COMMENT 'User email address'\n) COMMENT 'Second example table';"
+    ],
+    "errors": [],
+    "metadata": {
+      "count": 2,
+      "processed": 2,
+      "original_count": 2,
+      "evaluated_count": 2
+    }
+  },
+  "validation": {
+    "results": [
+      {
+        "sql_statement": "CREATE TABLE IF NOT EXISTS DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_1 (\n  ID BIGINT NOT NULL COMMENT 'Primary key',\n  NAME VARCHAR(255) NULL COMMENT 'Name field',\n  CREATED_AT TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP() COMMENT 'Creation timestamp'\n) COMMENT 'Example table for testing';",
+        "syntax_valid": true,
+        "error_message": null
+      },
+      {
+        "sql_statement": "CREATE TABLE IF NOT EXISTS DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_2 (\n  USER_ID BIGINT NOT NULL,\n  EMAIL VARCHAR(100) NOT NULL COMMENT 'User email address'\n) COMMENT 'Second example table';",
+        "syntax_valid": true,
+        "error_message": null
+      }
+    ],
+    "total_statements": 2,
+    "valid_statements": 2,
+    "invalid_statements": 0,
+    "validation_method": "syntax_validator"
+  },
+  "timestamp": "20251216_165817"
+}

@@ -1,0 +1,33 @@
+{
+  "views": [
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "view_name": "ACTIVE_USERS_VIEW",
+      "view_definition": "SELECT u.user_id, u.email, u.created_at, p.profile_status FROM users u LEFT JOIN user_profiles p ON u.user_id = p.user_id WHERE u.is_active = true",
+      "created": "2025-01-15 10:30:00.000000-08:00",
+      "last_altered": "2025-01-20 14:45:00.000000-08:00",
+      "comment": "View showing active users with their profile status"
+    },
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "view_name": "SALES_SUMMARY_VIEW",
+      "view_definition": "SELECT DATE_TRUNC('month', order_date) as month, product_category, SUM(order_amount) as total_sales, COUNT(*) as order_count FROM sales_orders WHERE order_status = 'completed' GROUP BY DATE_TRUNC('month', order_date), product_category",
+      "created": "2025-01-10 09:15:00.000000-08:00",
+      "last_altered": "2025-01-25 16:20:00.000000-08:00",
+      "comment": "Monthly sales summary by product category"
+    },
+    {
+      "database_name": "DATA_MIGRATION_DB",
+      "schema_name": "DATA_MIGRATION_SCHEMA",
+      "view_name": "INVENTORY_STATUS_VIEW",
+      "view_definition": "SELECT p.product_id, p.product_name, p.category, i.quantity_available, i.last_inventory_update, CASE WHEN i.quantity_available < 10 THEN 'LOW_STOCK' WHEN i.quantity_available = 0 THEN 'OUT_OF_STOCK' ELSE 'IN_STOCK' END as stock_status FROM products p INNER JOIN inventory i ON p.product_id = i.product_id",
+      "created": "2025-01-05 11:00:00.000000-08:00",
+      "last_altered": "2025-01-18 13:30:00.000000-08:00",
+      "comment": "Current inventory status with stock level indicators"
+    }
+  ]
+}
+
+

@@ -233,3 +233,5 @@ __marimo__/
 /translation_graph/output/
 /translation_graph/ddl_output/
 /translation_graph/tests/integration/ddl_output/evaluation_results/
+# Local test outputs
+/test_output/
