@@ -89,7 +89,8 @@ def extract_artifacts_from_json(
     Raises:
         KeyError: If the artifact type key is not found in JSON
     """
-    # Use mapping for special artifact types (e.g., 'grants' -> 'grants_flattened')
+    # Use explicit mapping only. For `grants` we expect the input JSON to
+    # provide the `grants_flattened` key; do not attempt heuristic fallbacks.
     key_mapping = get_json_key_mapping()
     json_key = key_mapping.get(artifact_type, artifact_type)
 
@@ -145,10 +146,9 @@ def create_batches_from_file(
     
     json_data = load_json_file(filepath)
 
-    # Use the correct JSON key for this artifact type
-    json_key_mapping = get_json_key_mapping()
-    json_key = json_key_mapping.get(artifact_type, artifact_type)
-    artifact_items = extract_artifacts_from_json(json_data, json_key)
+    # Extract artifacts using the canonical artifact_type; extraction will
+    # resolve the correct JSON key (including fallbacks) internally.
+    artifact_items = extract_artifacts_from_json(json_data, artifact_type)
     
     if context is None:
         context = {}
