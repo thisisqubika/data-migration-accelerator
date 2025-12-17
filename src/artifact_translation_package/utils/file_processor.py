@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 from typing import List, Optional, Dict, Any
 from artifact_translation_package.utils.types import ArtifactBatch
 
@@ -95,10 +96,16 @@ def extract_artifacts_from_json(
     json_key = key_mapping.get(artifact_type, artifact_type)
 
     if json_key not in json_data:
-        raise KeyError(
-            f"Artifact type '{artifact_type}' (mapped to '{json_key}') not found in JSON. "
-            f"Available keys: {list(json_data.keys())}"
+        logging.warning(
+            "Artifact type '%s' (mapped to '%s') not found in JSON. Available keys: %s",
+            artifact_type,
+            json_key,
+            list(json_data.keys()),
         )
+        # Do not raise for missing optional artifact keys (e.g., unexpected
+        # files like grants_future.json). Return empty list so processing
+        # continues without failing.
+        return []
 
     artifacts = json_data[json_key]
 
