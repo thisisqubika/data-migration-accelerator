@@ -202,12 +202,8 @@ def test_save_sql_files():
 
         print(f"\n3. Saving SQL files to: {output_dir}")
 
-        # Import the save function
-        import sys
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        translation_graph_dir = os.path.dirname(os.path.dirname(current_dir))
-        sys.path.insert(0, translation_graph_dir)
-        from databricks_job import save_sql_files
+        # Import the save function from the artifact package
+        from artifact_translation_package.databricks_job import save_sql_files
 
         save_sql_files(result, output_dir)
 

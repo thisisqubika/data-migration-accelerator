@@ -178,6 +178,15 @@ class DDLConfig:
                     "endpoint": LangGraphConfig.DBX_ENDPOINT.value
                 }
             },
+            "evaluator": {
+                "provider": "databricks",
+                "model": "databricks-llama-4-maverick",
+                "temperature": 0.1,
+                "max_tokens": 2000,
+                "additional_params": {
+                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                }
+            },
             "external_locations_translator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",
@@ -199,6 +208,12 @@ class DDLConfig:
             "compress_output": LangGraphConfig.DDL_COMPRESS_OUTPUT.value,
             "base_dir": LangGraphConfig.DDL_OUTPUT_DIR.value,
             "timestamp_format": "%Y%m%d_%H%M%S"
+        },
+        "validation": {
+            "enabled": True,
+            "report_all_results": False,
+            "llm_validated_artifacts": ["procedures", "pipes"],
+            "skip_unsupported_artifacts": ["grants", "procedures", "udfs"]
         },
         "langsmith": {
             "tracing": LangGraphConfig.LANGSMITH_TRACING.value,
