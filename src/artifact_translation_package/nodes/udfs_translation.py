@@ -1,6 +1,7 @@
 from artifact_translation_package.prompts.udfs_prompts import UDFsPrompts
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
+import json
 
 
 def translate_udfs(batch: ArtifactBatch) -> TranslationResult:
@@ -21,8 +22,6 @@ def translate_udfs(batch: ArtifactBatch) -> TranslationResult:
 
     for udf_json in batch.items:
         try:
-            # Parse the UDF JSON
-            import json
             udf_metadata = json.loads(udf_json)
 
             # Create prompt with context and UDF metadata

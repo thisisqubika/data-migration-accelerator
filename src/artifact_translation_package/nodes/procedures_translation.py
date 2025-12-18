@@ -1,3 +1,4 @@
+import json
 from artifact_translation_package.prompts.procedures_prompts import ProceduresPrompts
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
@@ -22,7 +23,6 @@ def translate_procedures(batch: ArtifactBatch) -> TranslationResult:
     for procedure_json in batch.items:
         try:
             # Parse the procedure JSON
-            import json
             procedure_metadata = json.loads(procedure_json)
 
             # Create prompt with context and procedure metadata

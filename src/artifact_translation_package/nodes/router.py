@@ -1,6 +1,7 @@
 from artifact_translation_package.config.ddl_config import get_config
 from artifact_translation_package.prompts.router_prompts import RouterPrompts
 from artifact_translation_package.utils.types import ArtifactBatch
+from artifact_translation_package.utils.llm_utils import create_llm_for_node
 
 
 def artifact_router(batch: ArtifactBatch) -> str:
@@ -28,8 +29,9 @@ def artifact_router(batch: ArtifactBatch) -> str:
             return batch.artifact_type
     
     config = get_config()
-    llm = config.get_llm_for_node("smart_router")
-    prompt = RouterPrompts.create_prompt()
+    llm = create_llm_for_node("smart_router")
+    prompt_context = dict(batch.context or {})
+    prompt = RouterPrompts.create_prompt(context=prompt_context)
 
     ddl_content = "\n".join(batch.items) if batch.items else ""
     routing_prompt = f"{prompt}\n\nDDL Content:\n{ddl_content}"

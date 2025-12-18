@@ -1,6 +1,7 @@
 from artifact_translation_package.prompts.schemas_prompts import SchemasPrompts
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
+import json
 
 
 def translate_schemas(batch: ArtifactBatch) -> TranslationResult:
@@ -21,8 +22,6 @@ def translate_schemas(batch: ArtifactBatch) -> TranslationResult:
 
     for schema_json in batch.items:
         try:
-            # Parse the schema JSON
-            import json
             schema_metadata = json.loads(schema_json)
 
             # Create prompt with context and schema metadata
