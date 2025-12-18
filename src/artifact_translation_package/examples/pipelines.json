@@ -1,0 +1,22 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "pipes": [
+    {
+      "created_on": "2025-12-01 04:08:31.956000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_PIPE",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "definition": "COPY INTO data_migration_source\n    FROM @data_migration_source_stage\n    FILE_FORMAT = data_migration_csv_format",
+      "owner": "SYSADMIN",
+      "notification_channel": "sfc-br-ds1-3-customer-stage/33za0000-s/",
+      "comment": "",
+      "integration": null,
+      "pattern": null,
+      "error_integration": null,
+      "owner_role_type": "ROLE",
+      "invalid_reason": null,
+      "kind": "STAGE"
+    }
+  ]
+}

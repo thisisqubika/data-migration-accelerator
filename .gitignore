@@ -235,3 +235,13 @@ __marimo__/
 /translation_graph/tests/integration/ddl_output/evaluation_results/
 # Local test outputs
 /test_output/
+
+# Translation outputs and evaluation results (local runs)
+# Per-run timestamped SQL output directories
+src/artifact_translation_package/out_sql_examples_*/
+# Per-run JSON outputs and debug files
+src/artifact_translation_package/out_examples_*.json
+src/artifact_translation_package/out_debug*.json
+# Persisted validation/evaluation results
+ddl_output/
+ddl_output/evaluation_results/

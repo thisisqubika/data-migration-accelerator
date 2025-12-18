@@ -2,28 +2,87 @@ from . import PromptBase
 
 
 class GrantsPrompts(PromptBase):
-    """Prompts for grant to Unity Catalog privilege translation."""
+    """Prompts for Snowflake grant → Unity Catalog grant translation."""
 
-    SYSTEM_TEMPLATE = """You are an expert in migrating Snowflake grants to Databricks Unity Catalog privileges.
+    SYSTEM_TEMPLATE = """You are a SQL translation engine.
 
-Your task is to translate Snowflake grant DDL statements to equivalent Databricks Unity Catalog privilege assignments.
+Translate Snowflake grants into equivalent Databricks Unity Catalog GRANT statements.
 
-Key mappings and considerations:
-- Snowflake GRANT → Databricks UNITY CATALOG PRIVILEGE on Catalog/Schema/Table/Volume
-- IMPERFECT MATCH: Future grants unsupported
-- Unity Catalog uses different privilege model and scoping
-- Map role-based grants to appropriate UC securable objects
+INPUT STRUCTURE:
+{{grant_metadata}} is a JSON object with the following structure:
+{{
+  "database": "<DATABASE_NAME>",
+  "schema": "<SCHEMA_NAME>",
+  "grants_flattened": [ <GRANT_RECORD>, ... ]
+}}
 
-For each grant DDL statement, provide the equivalent Databricks SQL that assigns privileges in Unity Catalog.
+Each GRANT_RECORD represents one Snowflake grant resolution event and may be
+DIRECT or INHERITED. Multiple records may represent the SAME effective privilege.
 
-Note: Future grants (grants on objects not yet created) are not supported in Unity Catalog.
+A GRANT_RECORD contains fields such as:
+{{
+  "privilege": "<PRIVILEGE>",
+  "granted_on": "<OBJECT_TYPE>",
+  "name": "<OBJECT_NAME_OR_FQN>",
+  "grantee_name": "<ROLE_OR_USER>",
+  "source": "direct | inherited_from:<ROLE>"
+}}
+
+IMPORTANT SEMANTICS:
+- The input is DENORMALIZED.
+- "grants_flattened" may contain duplicates for the same effective permission.
+- DIRECT and INHERITED grants for the same (object, privilege, grantee)
+  represent ONE effective grant.
+
+You must compute EFFECTIVE GRANTS before emitting SQL.
+
+CRITICAL CONSTRAINTS:
+- ONLY translate privileges explicitly present in "grants_flattened".
+- DO NOT infer, add, expand, or complete grants.
+- DO NOT add USE CATALOG, USE SCHEMA, ownership, or prerequisite grants.
+- DO NOT introduce new objects, roles, or privileges not present in input.
+
+ASSUMPTIONS:
+- All referenced catalogs, schemas, and tables already exist.
+- Ignore ownership, future grants, grant_option, created_on, granted_by, role_name.
+- Treat inherited grants as effective grants.
+
+OUTPUT RULES (STRICT):
+- Output ONLY Databricks SQL GRANT statements and SQL comments.
+- NO meta comments.
+- NO explanations, headings, markdown, or examples.
+- Process the ENTIRE "grants_flattened" list silently, then emit FINAL OUTPUT ONCE.
+- Deduplicate by (object, privilege, grantee).
+- Trim whitespace from all identifiers.
+- Use fully qualified object names as provided.
+- Use backticks ONLY around principals.
+- Each statement must end with a semicolon.
+
+TRANSLATION RULES:
+- Snowflake roles → Databricks account groups (same name).
+
+PRIVILEGE MAPPING (ONLY THESE):
+- SELECT → SELECT
+- INSERT / UPDATE / DELETE → MODIFY
+- USAGE on DATABASE → USE CATALOG
+- USAGE on SCHEMA → USE SCHEMA
+
+OBJECT HANDLING:
+- TABLE / VIEW → emit GRANT
+- WAREHOUSE → DO NOT emit GRANT
+
+WAREHOUSE RULE (EXACT OUTPUT):
+For each UNIQUE (warehouse, privilege, grantee), emit ONLY:
+
+-- UNSUPPORTED: Snowflake WAREHOUSE grants have no Unity Catalog equivalent
+-- Snowflake: GRANT <PRIVILEGE> ON WAREHOUSE <NAME> TO ROLE <ROLE>
 
 Context: {context}
-Input DDL: {ddl}
+Grant Metadata: {grant_metadata}
 
-Provide only the translated privilege assignment statements, noting any unsupported future grant scenarios."""
+OUTPUT SQL ONLY.
+"""
 
     @classmethod
     def create_prompt(cls, **kwargs):
-        """Create grant translation system prompt."""
         return cls.system_prompt(**kwargs)

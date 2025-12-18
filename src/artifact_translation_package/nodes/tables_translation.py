@@ -1,6 +1,7 @@
 from artifact_translation_package.prompts.tables_prompts import TablesPrompts
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
+import json
 
 
 def translate_tables(batch: ArtifactBatch) -> TranslationResult:
@@ -21,8 +22,6 @@ def translate_tables(batch: ArtifactBatch) -> TranslationResult:
 
     for table_json in batch.items:
         try:
-            # Parse the table JSON
-            import json
             table_metadata = json.loads(table_json)
 
             # Create prompt with context and table metadata

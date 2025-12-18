@@ -111,3 +111,30 @@ For detailed instructions on configuring Snowflake credentials, see [CONFIGURATI
    ```
 
 3. The `.env` file is already in `.gitignore` to protect your credentials
+
+## Run Locally (translation job)
+
+
+For a stylish, repeatable local run, use the included helper script or Makefile target.
+
+Quick (recommended):
+
+```bash
+# run via make (creates timestamped output dir)
+make translate
+```
+
+Direct script (more control):
+
+```bash
+# run all example input files, batch size 2, produce SQL files
+./scripts/run_translation.sh
+
+# pass a custom glob, batch size, or output format (json/sql)
+./scripts/run_translation.sh "src/artifact_translation_package/examples/*.json" 4 json
+```
+
+Notes:
+- `make translate` invokes the script at `scripts/run_translation.sh` and is the cleanest option.
+- The script exports `PYTHONPATH=src` so you can run it from the repository root.
+- Output is written to `src/artifact_translation_package/out_sql_examples_<timestamp>`.

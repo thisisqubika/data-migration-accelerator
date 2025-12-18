@@ -1,3 +1,4 @@
+import json
 from artifact_translation_package.prompts.sequences_prompts import SequencesPrompts
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
@@ -25,7 +26,6 @@ def translate_sequences(batch: ArtifactBatch) -> TranslationResult:
     for sequence_json in batch.items:
         try:
             # Parse the sequence JSON
-            import json
             sequence_metadata = json.loads(sequence_json)
 
             # Create prompt with context and sequence metadata

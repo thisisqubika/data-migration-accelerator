@@ -26,7 +26,7 @@ def aggregate_translations(*results: TranslationResult, evaluation_results: Opti
         all_artifact_types = {
             "databases", "schemas", "tables", "views", "stages", "external_locations",
             "streams", "pipes", "roles", "grants", "tags", "comments",
-            "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+            "masking_policies", "udfs", "procedures", "sequences"
         }
         
         merged = {artifact_type: [] for artifact_type in all_artifact_types}

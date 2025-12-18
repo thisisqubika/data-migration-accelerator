@@ -8,6 +8,23 @@ class CommentsPrompts(PromptBase):
 
 Your task is to translate Snowflake comment DDL statements to equivalent Databricks comment statements.
 
+METADATA STRUCTURE:
+The comment metadata may include the following key fields:
+- database_name: The Snowflake database name (maps to Databricks CATALOG)
+- schema_name: The Snowflake schema name (maps to Databricks SCHEMA)
+- object_name: The object being commented on
+- object_type: The type of object (TABLE, VIEW, COLUMN, SCHEMA, DATABASE, etc.)
+- comment_text: The comment text
+
+CRITICAL NAMING REQUIREMENT:
+When referencing objects in COMMENT statements, you MUST use fully qualified names:
+- For tables/views/procedures/functions: <database_name>.<schema_name>.<object_name>
+- For schemas: <database_name>.<schema_name>
+- For catalogs: <database_name>
+
+For example, adding a comment to table "ORDERS" in database "DATA_MIGRATION_DB", schema "DATA_MIGRATION_SCHEMA":
+  COMMENT ON TABLE DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.ORDERS IS 'Customer orders table'
+
 Key mappings:
 - Snowflake COMMENT → Databricks COMMENT
 - Direct equivalent mapping

@@ -1,0 +1,406 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "completeness": {
+    "tables": {
+      "snowflake": 2,
+      "extracted": 2,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "views": {
+      "snowflake": 4,
+      "extracted": 4,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "procedures": {
+      "snowflake": 2,
+      "extracted": 2,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "functions": {
+      "snowflake": 2,
+      "extracted": 2,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "sequences": {
+      "snowflake": 2,
+      "extracted": 2,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "stages": {
+      "snowflake": 1,
+      "extracted": 1,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "file_formats": {
+      "snowflake": 2,
+      "extracted": 2,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "tasks": {
+      "snowflake": 1,
+      "extracted": 1,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "streams": {
+      "snowflake": 1,
+      "extracted": 1,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "pipes": {
+      "snowflake": 1,
+      "extracted": 1,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    },
+    "roles": {
+      "snowflake": 0,
+      "extracted": 13,
+      "coverage_pct": 100.0,
+      "perfect_match": false
+    },
+    "grants_privileges": {
+      "snowflake": 0,
+      "extracted": 4,
+      "coverage_pct": 100.0,
+      "perfect_match": false
+    },
+    "grants_hierarchy": {
+      "snowflake": 0,
+      "extracted": 13,
+      "coverage_pct": 100.0,
+      "perfect_match": false
+    },
+    "grants_future": {
+      "snowflake": 0,
+      "extracted": 0,
+      "coverage_pct": 100.0,
+      "perfect_match": true
+    }
+  },
+  "correctness": {
+    "tables": [
+      {
+        "table": "DATA_MIGRATION_SOURCE",
+        "snowflake_column_count": 13,
+        "extracted_column_count": 13,
+        "matches": 13,
+        "total_columns": 13,
+        "correctness_pct": 100.0,
+        "columns_match_exactly": true,
+        "snowflake": [
+          {
+            "column_name": "SOURCE_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "SOURCE_NAME",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_TYPE",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_CONNECTION",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_STATUS",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_TIMESTAMP",
+            "data_type": "TIMESTAMP_NTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "IS_ACTIVE",
+            "data_type": "BOOLEAN",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "RECORD_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "METADATA",
+            "data_type": "VARIANT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TAGS",
+            "data_type": "ARRAY",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CONFIG",
+            "data_type": "OBJECT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CREATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "UPDATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          }
+        ],
+        "extracted": [
+          {
+            "column_name": "SOURCE_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "SOURCE_NAME",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_TYPE",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_CONNECTION",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SOURCE_STATUS",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_TIMESTAMP",
+            "data_type": "TIMESTAMP_NTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "IS_ACTIVE",
+            "data_type": "BOOLEAN",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "RECORD_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "METADATA",
+            "data_type": "VARIANT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TAGS",
+            "data_type": "ARRAY",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CONFIG",
+            "data_type": "OBJECT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CREATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "UPDATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          }
+        ]
+      },
+      {
+        "table": "DATA_MIGRATION_TARGET",
+        "snowflake_column_count": 13,
+        "extracted_column_count": 13,
+        "matches": 13,
+        "total_columns": 13,
+        "correctness_pct": 100.0,
+        "columns_match_exactly": true,
+        "snowflake": [
+          {
+            "column_name": "TARGET_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "SOURCE_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TARGET_NAME",
+            "data_type": "TEXT",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "TARGET_TYPE",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_DATE",
+            "data_type": "DATE",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_STATUS",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TOTAL_RECORDS",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SUCCESS_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "ERROR_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "IS_ACTIVE",
+            "data_type": "BOOLEAN",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_CONFIG",
+            "data_type": "VARIANT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CREATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "UPDATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          }
+        ],
+        "extracted": [
+          {
+            "column_name": "TARGET_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "SOURCE_ID",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TARGET_NAME",
+            "data_type": "TEXT",
+            "is_nullable": "NO"
+          },
+          {
+            "column_name": "TARGET_TYPE",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_DATE",
+            "data_type": "DATE",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_STATUS",
+            "data_type": "TEXT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "TOTAL_RECORDS",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "SUCCESS_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "ERROR_COUNT",
+            "data_type": "NUMBER",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "IS_ACTIVE",
+            "data_type": "BOOLEAN",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "MIGRATION_CONFIG",
+            "data_type": "VARIANT",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "CREATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          },
+          {
+            "column_name": "UPDATED_AT",
+            "data_type": "TIMESTAMP_LTZ",
+            "is_nullable": "YES"
+          }
+        ]
+      }
+    ],
+    "views": [
+      {
+        "view": "DATA_MIGRATION_ACTIVE_SOURCES",
+        "match": true,
+        "snowflake_definition": "CREATE OR REPLACE VIEW data_migration_active_sources AS\nSELECT \n    source_id,\n    source_name,\n    source_type,\n    source_status,\n    record_count,\n    created_at\nFROM data_migration_source\nWHERE is_active = TRUE;",
+        "extracted_definition": "CREATE OR REPLACE VIEW data_migration_active_sources AS\nSELECT \n    source_id,\n    source_name,\n    source_type,\n    source_status,\n    record_count,\n    created_at\nFROM data_migration_source\nWHERE is_active = TRUE;"
+      },
+      {
+        "view": "DATA_MIGRATION_MONTHLY_SUMMARY",
+        "match": true,
+        "snowflake_definition": "CREATE OR REPLACE VIEW data_migration_monthly_summary AS\nSELECT \n    DATE_TRUNC('MONTH', migration_date) AS month,\n    COUNT(DISTINCT target_id) AS target_count,\n    COUNT(DISTINCT source_id) AS source_count,\n    SUM(total_records) AS total_records_migrated,\n    AVG(total_records) AS avg_records_per_target\nFROM data_migration_target\nWHERE migration_status = 'COMPLETED'\nGROUP BY DATE_TRUNC('MONTH', migration_date);",
+        "extracted_definition": "CREATE OR REPLACE VIEW data_migration_monthly_summary AS\nSELECT \n    DATE_TRUNC('MONTH', migration_date) AS month,\n    COUNT(DISTINCT target_id) AS target_count,\n    COUNT(DISTINCT source_id) AS source_count,\n    SUM(total_records) AS total_records_migrated,\n    AVG(total_records) AS avg_records_per_target\nFROM data_migration_target\nWHERE migration_status = 'COMPLETED'\nGROUP BY DATE_TRUNC('MONTH', migration_date);"
+      },
+      {
+        "view": "DATA_MIGRATION_STATUS_RANKED",
+        "match": true,
+        "snowflake_definition": "CREATE OR REPLACE VIEW data_migration_status_ranked AS\nSELECT \n    t.target_id,\n    t.target_name,\n    t.target_type,\n    t.total_records,\n    t.success_count,\n    t.error_count,\n    RANK() OVER (PARTITION BY t.target_type ORDER BY t.total_records DESC) AS type_rank,\n    RANK() OVER (ORDER BY t.total_records DESC) AS overall_rank\nFROM data_migration_target t\nWHERE t.migration_status = 'COMPLETED';",
+        "extracted_definition": "CREATE OR REPLACE VIEW data_migration_status_ranked AS\nSELECT \n    t.target_id,\n    t.target_name,\n    t.target_type,\n    t.total_records,\n    t.success_count,\n    t.error_count,\n    RANK() OVER (PARTITION BY t.target_type ORDER BY t.total_records DESC) AS type_rank,\n    RANK() OVER (ORDER BY t.total_records DESC) AS overall_rank\nFROM data_migration_target t\nWHERE t.migration_status = 'COMPLETED';"
+      },
+      {
+        "view": "DATA_MIGRATION_SUMMARY",
+        "match": true,
+        "snowflake_definition": "CREATE OR REPLACE VIEW data_migration_summary AS\nSELECT \n    s.source_id,\n    s.source_name,\n    s.source_type,\n    COUNT(t.target_id) AS total_targets,\n    SUM(t.total_records) AS total_records_migrated,\n    MAX(t.migration_date) AS last_migration_date,\n    AVG(t.total_records) AS avg_records_per_target\nFROM data_migration_source s\nLEFT JOIN data_migration_target t ON s.source_id = t.source_id\nWHERE s.is_active = TRUE\nGROUP BY s.source_id, s.source_name, s.source_type;",
+        "extracted_definition": "CREATE OR REPLACE VIEW data_migration_summary AS\nSELECT \n    s.source_id,\n    s.source_name,\n    s.source_type,\n    COUNT(t.target_id) AS total_targets,\n    SUM(t.total_records) AS total_records_migrated,\n    MAX(t.migration_date) AS last_migration_date,\n    AVG(t.total_records) AS avg_records_per_target\nFROM data_migration_source s\nLEFT JOIN data_migration_target t ON s.source_id = t.source_id\nWHERE s.is_active = TRUE\nGROUP BY s.source_id, s.source_name, s.source_type;"
+      }
+    ]
+  }
+}
