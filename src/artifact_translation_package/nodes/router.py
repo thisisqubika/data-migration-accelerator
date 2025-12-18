@@ -17,16 +17,24 @@ def artifact_router(batch: ArtifactBatch) -> str:
     Returns:
         String indicating the target node: "databases", "schemas", "tables", "views",
         "stages", "external_locations", "streams", "pipes", "roles", "grants", "tags",
-        "comments", "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+        "comments", "masking_policies", "udfs", "procedures", "sequences"
     """
     if batch.artifact_type:
+        # Note: certain artifact types (previously file_formats) are intentionally excluded from runtime routing
         valid_nodes = {
             "databases", "schemas", "tables", "views", "stages", "external_locations",
             "streams", "pipes", "roles", "grants", "tags", "comments",
-            "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+            "masking_policies", "udfs", "procedures", "sequences"
         }
+        # If the batch already declares an artifact_type and it's supported,
+        # return it directly. If it's declared but not supported by the runtime
+        # graph, return the aggregator to skip translation for that batch.
         if batch.artifact_type in valid_nodes:
             return batch.artifact_type
+        # Return the aggregator node to skip translation for unsupported
+        # artifact types so the batch will be ignored by the translation
+        # nodes and merged as metadata only.
+        return "aggregator"
     
     config = get_config()
     llm = create_llm_for_node("smart_router")
@@ -43,7 +51,7 @@ def artifact_router(batch: ArtifactBatch) -> str:
     valid_nodes = {
         "databases", "schemas", "tables", "views", "stages", "external_locations",
         "streams", "pipes", "roles", "grants", "tags", "comments",
-        "masking_policies", "udfs", "procedures", "sequences", "file_formats"
+        "masking_policies", "udfs", "procedures", "sequences"
     }
 
     for node in valid_nodes:

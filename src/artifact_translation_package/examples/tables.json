@@ -1,0 +1,294 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "tables": [
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "table_name": "DATA_MIGRATION_SOURCE",
+      "table_type": "BASE TABLE",
+      "row_count": 0,
+      "bytes": 0,
+      "created": "2025-12-01 04:08:24.554000-08:00",
+      "last_altered": "2025-12-01 04:08:31.295000-08:00",
+      "comment": "Data migration source table with various data types",
+      "columns": [
+        {
+          "column_name": "SOURCE_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_NAME",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_TYPE",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_CONNECTION",
+          "data_type": "TEXT",
+          "character_maximum_length": 255,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_STATUS",
+          "data_type": "TEXT",
+          "character_maximum_length": 50,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_TIMESTAMP",
+          "data_type": "TIMESTAMP_NTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "IS_ACTIVE",
+          "data_type": "BOOLEAN",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "RECORD_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 18,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "METADATA",
+          "data_type": "VARIANT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TAGS",
+          "data_type": "ARRAY",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CONFIG",
+          "data_type": "OBJECT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CREATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        },
+        {
+          "column_name": "UPDATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        }
+      ],
+      "sample_data": []
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "table_name": "DATA_MIGRATION_TARGET",
+      "table_type": "BASE TABLE",
+      "row_count": 0,
+      "bytes": 0,
+      "created": "2025-12-01 04:08:25.045000-08:00",
+      "last_altered": "2025-12-01 04:08:25.322000-08:00",
+      "comment": "Data migration target table with clustering and time travel",
+      "columns": [
+        {
+          "column_name": "TARGET_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SOURCE_ID",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 38,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TARGET_NAME",
+          "data_type": "TEXT",
+          "character_maximum_length": 200,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "NO",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TARGET_TYPE",
+          "data_type": "TEXT",
+          "character_maximum_length": 100,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_DATE",
+          "data_type": "DATE",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_STATUS",
+          "data_type": "TEXT",
+          "character_maximum_length": 50,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "TOTAL_RECORDS",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 18,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "SUCCESS_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 10,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": "0",
+          "comment": null
+        },
+        {
+          "column_name": "ERROR_COUNT",
+          "data_type": "NUMBER",
+          "character_maximum_length": null,
+          "numeric_precision": 10,
+          "numeric_scale": 0,
+          "is_nullable": "YES",
+          "column_default": "0",
+          "comment": null
+        },
+        {
+          "column_name": "IS_ACTIVE",
+          "data_type": "BOOLEAN",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "TRUE",
+          "comment": null
+        },
+        {
+          "column_name": "MIGRATION_CONFIG",
+          "data_type": "VARIANT",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": null,
+          "comment": null
+        },
+        {
+          "column_name": "CREATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        },
+        {
+          "column_name": "UPDATED_AT",
+          "data_type": "TIMESTAMP_LTZ",
+          "character_maximum_length": null,
+          "numeric_precision": null,
+          "numeric_scale": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP()",
+          "comment": null
+        }
+      ],
+      "sample_data": []
+    }
+  ]
+}

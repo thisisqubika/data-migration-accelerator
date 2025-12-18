@@ -231,7 +231,7 @@ def save_sql_files(result: Dict[str, Any], output_base_path: str):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
-    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations', 'file_formats']
+    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
 
     total_sql_files = 0
     total_sql_statements = 0
@@ -287,7 +287,7 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
     if not output_base_path.endswith('/'):
         output_base_path += '/'
 
-    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations', 'file_formats']
+    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
 
     total_sql_files = 0
     total_sql_statements = 0

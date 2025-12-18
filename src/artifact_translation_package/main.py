@@ -179,7 +179,7 @@ def save_sql_files(result: Dict[str, Any], results_dir: str):
     artifact_types = [
         "databases", "schemas", "tables", "views", "stages", "external_locations",
         "streams", "pipes", "roles", "grants", "tags", "comments",
-        "masking_policies", "udfs", "procedures", "file_formats"
+        "masking_policies", "udfs", "procedures"
     ]
     
     total_sql_files = 0

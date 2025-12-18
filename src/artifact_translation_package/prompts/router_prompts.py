@@ -34,7 +34,6 @@ Metadata & Object Properties:
 Programmatic & Logical Objects:
 - udfs: CREATE FUNCTION/UDF statements
 - procedures: CREATE PROCEDURE statements
-- file_formats: CREATE FILE FORMAT statements
 
 Analyze the DDL content and return ONLY the routing target name from the list above that best matches the object type being created or modified.
 

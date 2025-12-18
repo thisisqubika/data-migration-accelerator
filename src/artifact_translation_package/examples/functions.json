@@ -1,0 +1,24 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "functions": [
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "function_name": "DATA_MIGRATION_CALCULATE_SUCCESS_RATE",
+      "function_definition": "\n    SELECT CASE \n        WHEN total_count > 0 THEN (success_count / total_count) * 100\n        ELSE 0\n    END\n",
+      "created": "2025-12-01 04:08:28.209000-08:00",
+      "last_altered": "2025-12-01 04:08:28.209000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "function_name": "DATA_MIGRATION_GET_TOP_SOURCES",
+      "function_definition": "\n    SELECT \n        source_id,\n        source_name,\n        total_records_migrated\n    FROM (\n        SELECT \n            s.source_id,\n            s.source_name,\n            COALESCE(SUM(t.total_records), 0) AS total_records_migrated,\n            ROW_NUMBER() OVER (ORDER BY COALESCE(SUM(t.total_records), 0) DESC) AS rn\n        FROM data_migration_source s\n        LEFT JOIN data_migration_target t ON s.source_id = t.source_id AND t.migration_status = 'COMPLETED'\n        GROUP BY s.source_id, s.source_name\n    )\n    WHERE rn <= limit_count\n    ORDER BY total_records_migrated DESC\n",
+      "created": "2025-12-01 04:08:28.664000-08:00",
+      "last_altered": "2025-12-01 04:08:28.664000-08:00",
+      "comment": null
+    }
+  ]
+}

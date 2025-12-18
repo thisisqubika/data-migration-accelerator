@@ -1,0 +1,24 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "procedures": [
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "procedure_name": "DATA_MIGRATION_GET_TARGETS",
+      "procedure_definition": "\n    SELECT \n        target_id,\n        migration_date,\n        migration_status,\n        total_records\n    FROM data_migration_target\n    WHERE source_id = source_id_param\n    ORDER BY migration_date DESC;\n",
+      "created": "2025-12-01 04:08:27.416000-08:00",
+      "last_altered": "2025-12-01 04:08:27.416000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "procedure_name": "DATA_MIGRATION_UPDATE_STATUS",
+      "procedure_definition": "\nDECLARE\n    current_success NUMBER;\n    current_error NUMBER;\n    new_success NUMBER;\n    new_error NUMBER;\nBEGIN\n    -- Get current counts\n    SELECT success_count, error_count INTO current_success, current_error\n    FROM data_migration_target\n    WHERE target_id = target_id_param;\n    \n    -- Calculate new counts\n    new_success := current_success + success_count_change;\n    new_error := current_error + error_count_change;\n    \n    -- Update counts\n    UPDATE data_migration_target\n    SET success_count = new_success,\n        error_count = new_error,\n        total_records = new_success + new_error,\n        updated_at = CURRENT_TIMESTAMP()\n    WHERE target_id = target_id_param;\n    \n    RETURN 'Status updated: Success=' || new_success || ', Error=' || new_error;\nEND;\n",
+      "created": "2025-12-01 04:08:27.793000-08:00",
+      "last_altered": "2025-12-01 04:08:27.793000-08:00",
+      "comment": null
+    }
+  ]
+}

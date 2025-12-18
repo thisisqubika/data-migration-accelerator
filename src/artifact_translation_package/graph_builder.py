@@ -18,7 +18,6 @@ from artifact_translation_package.nodes.comments_translation import translate_co
 from artifact_translation_package.nodes.masking_policies_translation import translate_masking_policies
 from artifact_translation_package.nodes.grants_translation import translate_grants
 from artifact_translation_package.nodes.udfs_translation import translate_udfs
-from artifact_translation_package.nodes.file_formats_translation import translate_file_formats
 from artifact_translation_package.nodes.external_locations_translation import translate_external_locations
 from artifact_translation_package.nodes.aggregator import aggregate_translations
 from artifact_translation_package.nodes.syntax_evaluation import evaluate_batch
@@ -115,9 +114,6 @@ def translate_roles_node(state: TranslationState) -> TranslationState:
     if not state["batch"]:
         return state
     result = translate_roles(state["batch"])
-    return {**state, "results": state["results"] + [result]}
-
-
 def translate_grants_node(state: TranslationState) -> TranslationState:
     """Translate grant artifacts."""
     if not state["batch"]:
@@ -169,12 +165,6 @@ def translate_procedures_node(state: TranslationState) -> TranslationState:
 
 
 
-def translate_file_formats_node(state: TranslationState) -> TranslationState:
-    """Translate file format artifacts."""
-    if not state["batch"]:
-        return state
-    result = translate_file_formats(state["batch"])
-    return {**state, "results": state["results"] + [result]}
 
 
 def evaluation_node(state: TranslationState) -> TranslationState:
@@ -277,7 +267,8 @@ class TranslationGraph:
         self.graph.add_node("translate_masking_policies", translate_masking_policies_node)
         self.graph.add_node("translate_udfs", translate_udfs_node)
         self.graph.add_node("translate_procedures", translate_procedures_node)
-        self.graph.add_node("translate_file_formats", translate_file_formats_node)
+        # file_formats are intentionally excluded from the runtime graph
+        # to disable their execution while keeping the translation code present.
         self.graph.add_node("evaluation", evaluation_node)
         self.graph.add_node("aggregator", aggregator_node)
 
@@ -304,7 +295,8 @@ class TranslationGraph:
                 "masking_policies": "translate_masking_policies",
                 "udfs": "translate_udfs",
                 "procedures": "translate_procedures",
-                "file_formats": "translate_file_formats",
+                # file_formats mapping intentionally omitted
+                    "aggregator": "aggregator",
             }
         )
 
@@ -314,7 +306,7 @@ class TranslationGraph:
             "translate_stages", "translate_external_locations", "translate_streams", "translate_pipes",
             "translate_roles", "translate_grants", "translate_tags", "translate_comments",
             "translate_masking_policies", "translate_udfs", "translate_procedures",
-              "translate_file_formats"
+                            # "translate_file_formats" intentionally excluded
         ]
 
         for node in translation_nodes:
@@ -402,7 +394,6 @@ class TranslationGraph:
                 "masking_policies": [],
                 "udfs": [],
                 "procedures": [],
-                "file_formats": [],
                 "metadata": {
                     "total_results": 0,
                     "errors": [],

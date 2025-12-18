@@ -1,0 +1,44 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "stages": [
+    {
+      "created_on": "2025-12-01 04:08:29.797000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_STAGE",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "url": "",
+      "has_credentials": "N",
+      "has_encryption_key": "N",
+      "owner": "SYSADMIN",
+      "comment": "Stage for data migration source files",
+      "region": null,
+      "type": "INTERNAL",
+      "cloud": null,
+      "notification_channel": null,
+      "storage_integration": null,
+      "endpoint": null,
+      "owner_role_type": "ROLE",
+      "directory_enabled": "N"
+    },
+    {
+      "created_on": "2025-12-01 04:08:29.797000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_STAGE",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "url": "s3://my-bucket/data-migration/source/",
+      "has_credentials": "Y",
+      "has_encryption_key": "N",
+      "owner": "SYSADMIN",
+      "comment": "Stage for data migration source files",
+      "region": "us-east-1",
+      "type": "EXTERNAL",
+      "cloud": "AWS",
+      "notification_channel": null,
+      "storage_integration": "DATA_MIGRATION_STORAGE_INT",
+      "endpoint": null,
+      "owner_role_type": "ROLE",
+      "directory_enabled": "N"
+    }
+  ]
+}

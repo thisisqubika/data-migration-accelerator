@@ -1,0 +1,23 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "streams": [
+    {
+      "created_on": "2025-12-01 04:08:31.126000-08:00",
+      "name": "DATA_MIGRATION_SOURCE_CHANGES",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "owner": "SYSADMIN",
+      "comment": "Stream to track data migration source table changes",
+      "table_name": "LVDMS.LVDMS.DATA_MIGRATION_SOURCE",
+      "source_type": "Table",
+      "base_tables": "LVDMS.LVDMS.DATA_MIGRATION_SOURCE",
+      "type": "DELTA",
+      "stale": "true",
+      "mode": "DEFAULT",
+      "stale_after": "2025-12-15 04:08:31.126000-08:00",
+      "invalid_reason": "N/A",
+      "owner_role_type": "ROLE"
+    }
+  ]
+}

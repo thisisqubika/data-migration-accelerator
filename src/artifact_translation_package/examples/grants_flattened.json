@@ -1,0 +1,78 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "grants_flattened": [
+    {
+      "created_on": "2025-12-05 08:42:29.733000-08:00",
+      "privilege": "DELETE",
+      "granted_on": "TABLE",
+      "name": "LVDMS.LVDMS.DATA_MIGRATION_SOURCE",
+      "granted_to": "ROLE",
+      "grantee_name": "POWER_BI",
+      "grant_option": "false",
+      "granted_by": "SYSADMIN",
+      "role_name": "POWER_BI",
+      "source": "direct"
+    },
+    {
+      "created_on": "2023-11-14 08:28:39.819000-08:00",
+      "privilege": "USAGE",
+      "granted_on": "WAREHOUSE",
+      "name": "DASHBOARDING_WH",
+      "granted_to": "ROLE",
+      "grantee_name": "POWER_BI",
+      "grant_option": "false",
+      "granted_by": "ACCOUNTADMIN",
+      "role_name": "POWER_BI",
+      "source": "direct"
+    },
+    {
+      "created_on": "2025-12-05 08:42:11.514000-08:00",
+      "privilege": "SELECT",
+      "granted_on": "TABLE",
+      "name": "LVDMS.LVDMS.DATA_MIGRATION_SOURCE",
+      "granted_to": "ROLE",
+      "grantee_name": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB",
+      "grant_option": "false",
+      "granted_by": "SYSADMIN",
+      "role_name": "POWER_BI",
+      "source": "inherited_from:_OWNER_DB_OFFICE_MGMT_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-10-11 13:09:53.812000-07:00",
+      "privilege": "USAGE",
+      "granted_on": "WAREHOUSE",
+      "name": "DASHBOARDING_WH",
+      "granted_to": "ROLE",
+      "grantee_name": "_READER_ALL",
+      "grant_option": "false",
+      "granted_by": "ACCOUNTADMIN",
+      "role_name": "_MONITOR_ALL",
+      "source": "inherited_from:_READER_ALL"
+    },
+    {
+      "created_on": "2025-12-05 08:42:11.514000-08:00",
+      "privilege": "SELECT",
+      "granted_on": "TABLE",
+      "name": "LVDMS.LVDMS.DATA_MIGRATION_SOURCE",
+      "granted_to": "ROLE",
+      "grantee_name": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB",
+      "grant_option": "false",
+      "granted_by": "SYSADMIN",
+      "role_name": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB",
+      "source": "direct"
+    },
+    {
+      "created_on": "2023-10-11 13:09:53.812000-07:00",
+      "privilege": "USAGE",
+      "granted_on": "WAREHOUSE",
+      "name": "DASHBOARDING_WH",
+      "granted_to": "ROLE",
+      "grantee_name": "_READER_ALL",
+      "grant_option": "false",
+      "granted_by": "ACCOUNTADMIN",
+      "role_name": "_READER_ALL",
+      "source": "direct"
+    }
+  ]
+}

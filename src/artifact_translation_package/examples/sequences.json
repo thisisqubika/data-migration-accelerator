@@ -1,0 +1,30 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "sequences": [
+    {
+      "name": "DATA_MIGRATION_SOURCE_ID_SEQ",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "next_value": 1000,
+      "interval": 1,
+      "created_on": "2025-12-01 04:08:29.008000-08:00",
+      "owner": "SYSADMIN",
+      "comment": "Sequence for data migration source IDs",
+      "owner_role_type": "ROLE",
+      "ordered": "N"
+    },
+    {
+      "name": "DATA_MIGRATION_TARGET_ID_SEQ",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "next_value": 1,
+      "interval": 1,
+      "created_on": "2025-12-01 04:08:29.387000-08:00",
+      "owner": "SYSADMIN",
+      "comment": "Sequence for data migration target IDs",
+      "owner_role_type": "ROLE",
+      "ordered": "N"
+    }
+  ]
+}

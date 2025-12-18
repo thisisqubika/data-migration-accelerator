@@ -1,0 +1,33 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "tasks": [
+    {
+      "created_on": "2025-12-01 04:08:30.722000-08:00",
+      "name": "DATA_MIGRATION_UPDATE_DAILY_SUMMARY",
+      "id": "01c0c238-7635-c5f3-0000-000000000cca",
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "owner": "SYSADMIN",
+      "comment": "Daily task to update data migration summary",
+      "warehouse": "COMPUTE_WH",
+      "schedule": "USING CRON 0 0 * * * UTC",
+      "predecessors": "[]",
+      "state": "suspended",
+      "definition": "INSERT INTO data_migration_daily_summary\n    SELECT \n        CURRENT_DATE() AS migration_date,\n        COUNT(*) AS target_count,\n        SUM(total_records) AS total_records_migrated\n    FROM data_migration_target\n    WHERE migration_date = CURRENT_DATE() - 1",
+      "condition": null,
+      "allow_overlapping_execution": "false",
+      "error_integration": "null",
+      "last_committed_on": null,
+      "last_suspended_on": null,
+      "owner_role_type": "ROLE",
+      "config": null,
+      "task_relations": "{\"Predecessors\":[]}",
+      "last_suspended_reason": null,
+      "success_integration": "null",
+      "scheduling_mode": null,
+      "target_completion_interval": null,
+      "execute_as_user": null
+    }
+  ]
+}

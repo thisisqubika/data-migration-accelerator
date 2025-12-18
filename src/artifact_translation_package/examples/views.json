@@ -1,0 +1,38 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "views": [
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "view_name": "DATA_MIGRATION_ACTIVE_SOURCES",
+      "view_definition": "CREATE OR REPLACE VIEW data_migration_active_sources AS\nSELECT \n    source_id,\n    source_name,\n    source_type,\n    source_status,\n    record_count,\n    created_at\nFROM data_migration_source\nWHERE is_active = TRUE;",
+      "created": "2025-12-01 04:08:25.607000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "view_name": "DATA_MIGRATION_MONTHLY_SUMMARY",
+      "view_definition": "CREATE OR REPLACE VIEW data_migration_monthly_summary AS\nSELECT \n    DATE_TRUNC('MONTH', migration_date) AS month,\n    COUNT(DISTINCT target_id) AS target_count,\n    COUNT(DISTINCT source_id) AS source_count,\n    SUM(total_records) AS total_records_migrated,\n    AVG(total_records) AS avg_records_per_target\nFROM data_migration_target\nWHERE migration_status = 'COMPLETED'\nGROUP BY DATE_TRUNC('MONTH', migration_date);",
+      "created": "2025-12-01 04:08:26.902000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "view_name": "DATA_MIGRATION_STATUS_RANKED",
+      "view_definition": "CREATE OR REPLACE VIEW data_migration_status_ranked AS\nSELECT \n    t.target_id,\n    t.target_name,\n    t.target_type,\n    t.total_records,\n    t.success_count,\n    t.error_count,\n    RANK() OVER (PARTITION BY t.target_type ORDER BY t.total_records DESC) AS type_rank,\n    RANK() OVER (ORDER BY t.total_records DESC) AS overall_rank\nFROM data_migration_target t\nWHERE t.migration_status = 'COMPLETED';",
+      "created": "2025-12-01 04:08:26.504000-08:00",
+      "comment": null
+    },
+    {
+      "database_name": "LVDMS",
+      "schema_name": "LVDMS",
+      "view_name": "DATA_MIGRATION_SUMMARY",
+      "view_definition": "CREATE OR REPLACE VIEW data_migration_summary AS\nSELECT \n    s.source_id,\n    s.source_name,\n    s.source_type,\n    COUNT(t.target_id) AS total_targets,\n    SUM(t.total_records) AS total_records_migrated,\n    MAX(t.migration_date) AS last_migration_date,\n    AVG(t.total_records) AS avg_records_per_target\nFROM data_migration_source s\nLEFT JOIN data_migration_target t ON s.source_id = t.source_id\nWHERE s.is_active = TRUE\nGROUP BY s.source_id, s.source_name, s.source_type;",
+      "created": "2025-12-01 04:08:26.088000-08:00",
+      "comment": null
+    }
+  ]
+}

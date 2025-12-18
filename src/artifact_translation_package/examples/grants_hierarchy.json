@@ -1,0 +1,110 @@
+{
+  "database": "LVDMS",
+  "schema": "LVDMS",
+  "grants_hierarchy": [
+    {
+      "created_on": "2023-08-13 17:29:30.185000-07:00",
+      "role": "_MONITOR_ALL",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_MONITOR_ALL"
+    },
+    {
+      "created_on": "2023-09-18 12:06:44.858000-07:00",
+      "role": "_OWNER_DB_CAPACITY_BRONZE_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_CAPACITY_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-09-19 06:42:44.141000-07:00",
+      "role": "_OWNER_DB_CAPACITY_SILVER_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_CAPACITY_SILVER_DB"
+    },
+    {
+      "created_on": "2025-12-05 08:38:58.305000-08:00",
+      "role": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "POWER_BI",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-09-19 08:08:43.067000-07:00",
+      "role": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_OFFICE_MGMT_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-09-19 08:33:50.246000-07:00",
+      "role": "_OWNER_DB_OFFICE_MGMT_SILVER_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_OFFICE_MGMT_SILVER_DB"
+    },
+    {
+      "created_on": "2023-09-19 08:45:39.011000-07:00",
+      "role": "_OWNER_DB_RECRUITMENT_BRONZE_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_RECRUITMENT_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-09-19 09:02:55.928000-07:00",
+      "role": "_OWNER_DB_RECRUITMENT_SILVER_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_RECRUITMENT_SILVER_DB"
+    },
+    {
+      "created_on": "2023-08-14 17:24:25.945000-07:00",
+      "role": "_OWNER_DB_SANDBOX_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_SANDBOX_DB"
+    },
+    {
+      "created_on": "2023-09-19 09:08:29.601000-07:00",
+      "role": "_OWNER_DB_TALENT_BRONZE_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_TALENT_BRONZE_DB"
+    },
+    {
+      "created_on": "2023-09-19 09:15:27.298000-07:00",
+      "role": "_OWNER_DB_TALENT_SILVER_DB",
+      "granted_to": "ROLE",
+      "grantee_name": "SYSADMIN",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_OWNER_DB_TALENT_SILVER_DB"
+    },
+    {
+      "created_on": "2023-11-14 08:28:34.865000-08:00",
+      "role": "_READER_ALL",
+      "granted_to": "ROLE",
+      "grantee_name": "POWER_BI",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_READER_ALL"
+    },
+    {
+      "created_on": "2023-08-13 17:29:29.095000-07:00",
+      "role": "_READER_ALL",
+      "granted_to": "ROLE",
+      "grantee_name": "_MONITOR_ALL",
+      "granted_by": "ACCOUNTADMIN",
+      "parent_role": "_READER_ALL"
+    }
+  ]
+}
