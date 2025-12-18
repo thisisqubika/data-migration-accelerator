@@ -26,24 +26,40 @@ REPORT STRUCTURE:
 
 The report must be returned in MARKDOWN format.
 The report must include the following sections:
-- Overview
-- Detailed results per artifact type. Every entry must include: artifact name, type, status [one of: success, error, warning]. If the status is error assign it to one of this categories: Syntax Error, LLM Error, Unsupported Feedback Error, Other Error 
-- Error and warning sections
-- Objects requiring manual review
-- Summary of AI-assisted vs rule-based outputs
-- Performance metrics
-
-REPORT ANALYSIS:
-
-Make sure to include the following:
-
-- Common translation errors
-- Patterns in warnings or inconsistencies
-- Success rate per artifact type
-- Unsupported or partially supported features
-- Dependencies that failed or were skipped
-- Recommendations for improving translation rules
-- Suggested workaround for unsupported features
+- ## Overview: Summary of migration process, always provide a numeric summary following the example below:
+   ---------
+    - Artifacts Processed: 8 (3 schemas, 2 tables, 2 views)
+    - Migration Errors: 0
+    - Migration Warnings: 0
+    - Validation Errors: 2
+   ---------
+- ## Objects requiring manual review
+- ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Unsupported Feedback Error. If no error just add "-". Below the table add a subnote with the following explanation: "The status can be one of: **Success** (Artifact was translated and validated successfully), **Validation Error** (Artifact was translated but failed validation), **Translation Error** (Artifact was not translated), **Warning** (Artifact was translated but has warnings)".
+- ## Migration Errors and Warnings
+- ## Analysis: Section that must include the following subsections:
+    - Key Findings
+    - Root Cause
+    - Impact
+    An example of this section is:
+    ---------
+    ### Key Findings
+    - Schema and view translations are stable and validate successfully.
+    - Table translation logic currently produces Python code, which fails Databricks validation.
+    ### Root Cause
+    - Table translation rules are misaligned with Databricks DDL requirements.
+    ### Impact
+    - Tables require manual intervention before deployment.
+    - No impact on schemas or views.
+    ---------
+- ## Performance metrics
+- ## Further Analysis: Make sure to include the following:
+    - Common translation errors
+    - Patterns in warnings or inconsistencies
+    - Success rate per artifact type
+    - Unsupported or partially supported features
+    - Dependencies that failed or were skipped
+    - Recommendations for improving translation rules
+    - Suggested workaround for unsupported features
 
 The migration output is:
 Count: {count}
@@ -66,12 +82,14 @@ def create_node_llm(node_name: str, llm_config: Dict[str, Any]):
         max_tokens=llm_config.get("max_tokens") or 2000,
     )
 
-def generate_report(data: List[str], count: Dict[str, Any]) -> List[str]:
+def generate_report(data: Dict[str, Any], count: Dict[str, Any]) -> List[str]:
     """
-    Args:
+    Args: 
+        data: Dictionary with translation and evaluation results
+        count: Dictionary with count of artifacts, errors, warnings and validation errors
 
     Returns:
-        
+        result of the LLM call
     """
     llm = create_node_llm("report_node", llm_config=llm_config)
     results = []

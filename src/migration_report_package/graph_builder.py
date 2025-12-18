@@ -90,7 +90,7 @@ def clean_raw_node(state: MigrationState) -> MigrationState:
 
 def count_node(state: MigrationState) -> MigrationState:
     """Count trnslated artifacts, errors, warnings and validation errors for the report."""
-    count = {"artifact_type": {}, "errors": 0, "warnings": 0, "successes": 0, "validation_errors": 0}
+    count = {"artifact_type": {}, "migration_errors": 0, "migration_warnings": 0, "successes": 0, "validation_errors": 0}
     for trans in state["cleaned_raw"]["translation_results"]:
         for type, value in trans["observability"]["artifact_counts"].items():
             if count["artifact_type"].get(type) is None:
@@ -99,8 +99,8 @@ def count_node(state: MigrationState) -> MigrationState:
             else:
                 count["artifact_type"][type] += value
                 count["successes"] += value
-        count["errors"] += trans["observability"]["total_errors"]
-        count["warnings"] += trans["observability"]["total_warnings"]
+        count["migration_errors"] += trans["observability"]["total_errors"]
+        count["migration_warnings"] += trans["observability"]["total_warnings"]
     for eval in state["cleaned_raw"]["evaluation"]:
         for res in eval["validation"]["results"]:
             count["validation_errors"] += (1 if not res.get("syntax_valid", True) else 0)
