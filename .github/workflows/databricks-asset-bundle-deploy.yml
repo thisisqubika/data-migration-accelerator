@@ -55,14 +55,14 @@ jobs:
         databricks bundle resources
     
     - name: Sync app source to workspace
-      working-directory: databricks-job-executor
+      working-directory: databricks_job_executor
       run: |
-        WORKSPACE_PATH="/Workspace/Shared/databricks-job-executor"
+        WORKSPACE_PATH="/Workspace/Shared/databricks_job_executor"
         databricks workspace mkdirs "$WORKSPACE_PATH" || true
         databricks workspace import-dir . "$WORKSPACE_PATH" --overwrite
 
     - name: Deploy app
-      working-directory: databricks-job-executor
+      working-directory: databricks_job_executor
       run: |
-        databricks apps deploy dbx-job-executor-app --source-code-path /Workspace/Shared/databricks-job-executor
-        databricks apps update dbx-job-executor-app --default-source-code-path /Workspace/Shared/databricks-job-executor || true
+        databricks apps deploy dbx-job-executor-app --source-code-path /Workspace/Shared/databricks_job_executor
+        databricks apps update dbx-job-executor-app --default-source-code-path /Workspace/Shared/databricks_job_executor || true
