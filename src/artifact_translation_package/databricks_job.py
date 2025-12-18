@@ -11,6 +11,7 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from artifact_translation_package.utils.output_utils import make_timestamped_output_path
 
 
 from artifact_translation_package.graph_builder import build_translation_graph
@@ -407,7 +408,15 @@ def databricks_entrypoint():
     )
     batch_size = LangGraphConfig.DDL_BATCH_SIZE.value
     output_format = LangGraphConfig.DDL_OUTPUT_FORMAT.value
-    output_path = None  # Optional - can be None for in-memory results
+    # Default output_path comes from the LangGraphConfig constant.
+    # Allow an environment variable `DDL_OUTPUT_PATH` to override this (useful in Databricks jobs).
+    output_path = os.environ.get("DDL_OUTPUT_PATH") or LangGraphConfig.DDL_OUTPUT_DIR.value
+    # Treat empty string as no output (in-memory)
+    if output_path == "":
+        output_path = None
+
+    # Build a timestamped output path (or None) using the helper function.
+    output_path = make_timestamped_output_path(output_path, output_format)
     
     print("=" * 60)
     print("Databricks Translation Job Starting")
