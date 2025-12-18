@@ -53,3 +53,16 @@ jobs:
         databricks bundle deploy -t dev
         databricks bundle summary
         databricks bundle resources
+    
+    - name: Sync app source to workspace
+      working-directory: databricks-migration-accelerator
+      run: |
+        WORKSPACE_PATH="/Workspace/Shared/databricks-migration-accelerator"
+        databricks workspace mkdirs "$WORKSPACE_PATH" || true
+        databricks workspace import-dir . "$WORKSPACE_PATH" --overwrite
+
+    - name: Deploy app
+      working-directory: databricks-migration-accelerator
+      run: |
+        databricks apps deploy dbx-job-executor-app --source-code-path /Workspace/Shared/databricks-migration-accelerator
+        databricks apps update dbx-job-executor-app --default-source-code-path /Workspace/Shared/databricks-migration-accelerator || true
