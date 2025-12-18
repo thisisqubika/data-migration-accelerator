@@ -55,7 +55,7 @@ jobs:
         databricks bundle resources
     
     - name: Sync app source to workspace
-      working-directory: databricks-migration-accelerator
+      working-directory: databricks-job-executor
       run: |
         WORKSPACE_PATH="/Workspace/Shared/databricks-job-executor"
         databricks workspace mkdirs "$WORKSPACE_PATH" || true
