@@ -18,6 +18,7 @@ from artifact_translation_package.graph_builder import build_translation_graph
 from artifact_translation_package.utils.file_processor import create_batches_from_file, process_files
 from artifact_translation_package.utils.types import ArtifactBatch
 from artifact_translation_package.config.constants import UnityCatalogConfig, LangGraphConfig
+from artifact_translation_package.utils.logger import get_logger
 
 
 def get_dbfs_path(filepath: str) -> str:
@@ -73,6 +74,7 @@ def process_translation_job(
     print("-" * 50)
     
     graph = build_translation_graph()
+    logger = get_logger("databricks_job")
     
     all_batches = []
     for filepath in input_files:
@@ -101,9 +103,10 @@ def process_translation_job(
             with open(output_local_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=2, default=str)
 
-            print(f"\nJSON results saved to: {output_local_path}")
+            logger.info("JSON results saved", {"path": output_local_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
         elif output_format == "sql":
             save_sql_files(result, output_path)
+            logger.info("SQL files saved", {"path": output_path})
 
     return result
 
@@ -167,7 +170,15 @@ def process_from_dbutils(
         if output_format == "json":
             output_json = json.dumps(result, indent=2, default=str)
             dbutils.fs.put(output_path, output_json)
-            print(f"JSON results saved to: {output_path}")
+            # Log using shared logger
+            try:
+                logger = get_logger("databricks_job")
+            except Exception:
+                logger = None
+            if logger:
+                logger.info("JSON results saved to dbfs", {"path": output_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
+            else:
+                print(f"JSON results saved to: {output_path}")
         elif output_format == "sql":
             save_sql_files_dbutils(result, output_path)
 
@@ -229,8 +240,10 @@ def save_sql_files(result: Dict[str, Any], output_base_path: str):
     output_local_path = get_dbfs_path(output_base_path)
     output_dir = os.path.dirname(output_local_path) if os.path.isfile(output_local_path) else output_local_path
 
+    # Ensure directory exists and log
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
+    logger = get_logger("databricks_job")
 
     artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
 
@@ -267,11 +280,9 @@ def save_sql_files(result: Dict[str, Any], output_base_path: str):
 
                 total_sql_files += 1
                 total_sql_statements += len(sql_statements)
-                print(f"   ✓ Saved {len(sql_statements)} {artifact_type} SQL statements to {sql_filename}")
+                logger.info(f"Saved SQL statements", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
 
-    print(f"\nSQL files saved to: {output_dir}")
-    print(f"Total SQL files: {total_sql_files}")
-    print(f"Total SQL statements: {total_sql_statements}")
+    logger.info("SQL files saved", {"path": output_dir, "total_files": total_sql_files, "total_statements": total_sql_statements})
 
 
 def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
@@ -292,6 +303,7 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
 
     total_sql_files = 0
     total_sql_statements = 0
+    logger = get_logger("databricks_job")
 
     for artifact_type in artifact_types:
         if artifact_type in result and result[artifact_type]:
@@ -324,11 +336,9 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
 
                 total_sql_files += 1
                 total_sql_statements += len(sql_statements)
-                print(f"   ✓ Saved {len(sql_statements)} {artifact_type} SQL statements to {sql_filename}")
+                logger.info("Saved SQL statements to dbfs", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
 
-    print(f"\nSQL files saved to: {output_base_path}")
-    print(f"Total SQL files: {total_sql_files}")
-    print(f"Total SQL statements: {total_sql_statements}")
+    logger.info("SQL files saved to dbfs", {"path": output_base_path, "total_files": total_sql_files, "total_statements": total_sql_statements})
 def main():
     """Main entry point for Databricks translation jobs."""
     import argparse

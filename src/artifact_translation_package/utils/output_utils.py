@@ -23,6 +23,13 @@ def make_timestamped_output_path(output_base: Optional[str], output_format: str)
     if not output_base:
         return None
 
+    # Disallow Workspace paths which are not writable as normal filesystem locations.
+    if output_base.startswith("/Workspace/"):
+        raise ValueError(
+            "Invalid DDL_OUTPUT_PATH: '/Workspace/...' is not a writable filesystem path. "
+            "Use a DBFS path (dbfs:/...) or a mounted Volume (/Volumes/...) instead."
+        )
+
     ts = utc_timestamp()
 
     # Normalize base (strip trailing slash for consistent joining)
