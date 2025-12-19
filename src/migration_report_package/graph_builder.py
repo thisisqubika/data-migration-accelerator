@@ -45,8 +45,9 @@ def input_node(state: MigrationState) -> MigrationState:
                     with open(file, "r", encoding="utf-8") as f:
                         raw["evaluation"].append(json.load(f))
         else:
-            with open(out, "r", encoding="utf-8") as f:
-                raw["translation_results"].append(json.load(f))
+            if out.endswith(".json"):
+                with open(out, "r", encoding="utf-8") as f:
+                    raw["translation_results"].append(json.load(f))
     state["raw"] = raw
     return state
 

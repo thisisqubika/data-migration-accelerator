@@ -34,7 +34,7 @@ The report must include the following sections:
     - Validation Errors: 2
    ---------
 - ## Objects requiring manual review
-- ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Unsupported Feedback Error. If no error just add "-". Below the table add a subnote with the following explanation: "The status can be one of: **Success** (Artifact was translated and validated successfully), **Validation Error** (Artifact was translated but failed validation), **Translation Error** (Artifact was not translated), **Warning** (Artifact was translated but has warnings)".
+- ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Task Failure. If no error just add "-". Below the table add a subnote with the following explanation: "The status can be one of: **Success** (Artifact was translated and validated successfully), **Validation Error** (Artifact was translated but failed validation), **Translation Error** (Artifact was not translated), **Warning** (Artifact was translated but has warnings)".
 - ## Migration Errors and Warnings
 - ## Analysis: Section that must include the following subsections:
     - Key Findings
