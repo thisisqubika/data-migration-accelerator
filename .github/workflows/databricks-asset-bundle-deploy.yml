@@ -64,4 +64,4 @@ jobs:
     - name: Deploy app
       working-directory: databricks_job_executor
       run: |
-        databricks apps deploy dbx-job-executor-app --source-code-path /Workspace/Shared/databricks_job_executor
+        databricks apps start dbx-job-executor-app
