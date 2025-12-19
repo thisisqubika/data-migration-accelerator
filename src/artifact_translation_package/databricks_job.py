@@ -225,7 +225,7 @@ def process_from_volume(
         return {"metadata": {"total_results": 0, "errors": []}}
     
     print(f"Found {len(json_files)} JSON file(s) to process")
-    return process_translation_job(json_files, output_path, batch_size)
+    return process_translation_job(json_files, output_path, batch_size, output_format=output_format)
 
 
 
