@@ -6,7 +6,7 @@ resources:
     databricks_job_executor_app:
       name: dbx-job-executor-app
       description: Streamlit application for executing and monitoring Databricks migration jobs
-      source_code_path: .
+      source_code_path: ./streamlit_app
       app_config:
         command:
           - python
