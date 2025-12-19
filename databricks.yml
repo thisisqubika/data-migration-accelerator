@@ -3,7 +3,7 @@ bundle:
 
 include:
   - tags.yml
-  - resources/*.yml   
+  - resources/*.yml  
 
 targets:
   dev:
