@@ -19,6 +19,10 @@ env:
 jobs:
   deploy-bundle:
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: deploy-dbx-job-executor-app-${{ github.ref }}
+      cancel-in-progress: true
     
     steps:
     - name: Checkout code
