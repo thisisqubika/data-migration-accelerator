@@ -4,7 +4,6 @@ bundle:
 include:
   - tags.yml
   - resources/*.yml  
-  - databricks_job_executor/app.yml 
 
 targets:
   dev:
