@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: deploy-dbx-job-executor-app-${{ github.ref }}
+      group: deploy-app-dbx-job-executor-app-dev
       cancel-in-progress: true
     
     steps:
