@@ -1,4 +1,4 @@
-name: dbx-job-executor-app-2
+name: dbx-job-executor-app
 description: Streamlit application for executing and monitoring Databricks migration jobs
 
 command:
