@@ -138,3 +138,27 @@ Notes:
 - `make translate` invokes the script at `scripts/run_translation.sh` and is the cleanest option.
 - The script exports `PYTHONPATH=src` so you can run it from the repository root.
 - Output is written to `src/artifact_translation_package/out_sql_examples_<timestamp>`.
+
+Local vs Databricks output paths
+--------------------------------
+
+This project uses Databricks-style paths (for example `dbfs:/...`) as the canonical configuration. To make the same code run locally without changing the canonical config, the runner maps Databricks paths to a local directory when it detects a non-Databricks runtime.
+
+- **Local mapping environment variable**: set `LOCAL_DBFS_MOUNT` to the local directory that should act as the root for `dbfs:/` paths. Default: `./ddl_output`.
+- **Per-run `results_dir`**: when running the translation job locally (for example via `make translate`), the job pre-creates a timestamped `results_dir` and propagates it to the translation context. Evaluation results are written under `<results_dir>/evaluation_results/`. Translation outputs such as `translation_results.json` and `results_summary.json` are written into the same `results_dir`.
+- **Fallback behavior**: the runner also exports `DDL_OUTPUT_DIR=<results_dir>` so code paths that read the `DDL_OUTPUT_DIR` environment variable will also target the per-run folder.
+
+Examples
+
+```bash
+# run with default local mapping (output under ./ddl_output by default)
+make translate
+
+# override where dbfs:/ maps to locally
+export LOCAL_DBFS_MOUNT=/tmp/my_local_dbfs
+make translate
+
+# inspect latest run outputs
+ls -la src/artifact_translation_package/out_sql_examples_*/
+ls -la <that-run-folder>/evaluation_results/
+```

@@ -20,6 +20,10 @@ from artifact_translation_package.utils.llm_utils import create_llm_for_node
 from artifact_translation_package.prompts.evaluation_prompts import EvaluationPrompts
 from artifact_translation_package.utils.evaluation_models import SQLEvaluationResult, SQLIssue, BatchSQLEvaluationResult
 from artifact_translation_package.config.ddl_config import get_config
+import logging
+
+# Module logger
+logger = logging.getLogger(__name__)
 
 
 def create_structured_llm(llm, batch_mode: bool = False):
@@ -520,11 +524,13 @@ def get_evaluation_results_directory(batch_context: dict = None) -> str:
         results_dir = batch_context["results_dir"]
         evaluation_results_dir = os.path.join(results_dir, "evaluation_results")
         os.makedirs(evaluation_results_dir, exist_ok=True)
+        logger.debug("Using batch results_dir for evaluation outputs", extra={"results_dir": results_dir, "source_file": batch_context.get("source_file")})
         return evaluation_results_dir
     
     output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
     evaluation_results_dir = os.path.join(output_dir, "evaluation_results")
     os.makedirs(evaluation_results_dir, exist_ok=True)
+    logger.warning("Batch context missing results_dir; falling back to global DDL_OUTPUT_DIR", extra={"fallback_dir": evaluation_results_dir, "batch_context_keys": list(batch_context.keys()) if batch_context else None})
     return evaluation_results_dir
 
 

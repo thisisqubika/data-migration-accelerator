@@ -529,17 +529,19 @@ def get_evaluation_results_directory(batch_context: dict = None) -> str:
     Returns:
         Path to evaluation results directory
     """
-    # If batch context has results_dir, use it (from main.py timestamped folder)
+    # If batch context has results_dir, use it (from main.py / job pre-created folder)
     if batch_context and "results_dir" in batch_context:
         results_dir = batch_context["results_dir"]
         evaluation_results_dir = os.path.join(results_dir, "evaluation_results")
         os.makedirs(evaluation_results_dir, exist_ok=True)
+        logger.debug("Using batch results_dir for evaluation outputs", extra={"results_dir": results_dir, "source_file": batch_context.get("source_file")})
         return evaluation_results_dir
     
     # Fallback to environment variable or default
     output_dir = os.getenv("DDL_OUTPUT_DIR", "./ddl_output")
     evaluation_results_dir = os.path.join(output_dir, "evaluation_results")
     os.makedirs(evaluation_results_dir, exist_ok=True)
+    logger.warning("Batch context missing results_dir; falling back to global DDL_OUTPUT_DIR", extra={"fallback_dir": evaluation_results_dir, "batch_context_keys": list(batch_context.keys()) if batch_context else None})
     return evaluation_results_dir
 
 
