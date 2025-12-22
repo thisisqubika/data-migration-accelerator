@@ -13,7 +13,9 @@ class LangGraphConfig(Enum):
     ENVIRONMENT = "development" 
     #DDL Settings
     DDL_BATCH_SIZE = 8
-    DDL_OUTPUT_DIR = "./ddl_output"
+    # Default outputs for Databricks should go to a Volume mounted path
+    # Use segmented path segments: /Volumes/<catalog>/<schema>/<volume_name>/
+    DDL_OUTPUT_DIR = "/Volumes/qubika_partner_solutions/migration_accelerator/outputs"
     
     # Optional: DDL Generation Settings
     #DDL_CATALOG_NAME= "demo_catalog"
@@ -23,7 +25,7 @@ class LangGraphConfig(Enum):
     DDL_MAX_CONCURRENT = 5              
     DDL_TIMEOUT = 300               
     # Output Configuration
-    DDL_OUTPUT_FORMAT = "json"           
+    DDL_OUTPUT_FORMAT = "sql"           
     DDL_INCLUDE_METADATA = True          
     DDL_COMPRESS_OUTPUT = False  
 

@@ -1,0 +1,17 @@
+name: dbx-job-executor-app
+description: Streamlit application for executing and monitoring Databricks migration jobs
+
+command:
+  - python
+  - -m
+  - streamlit 
+  - run 
+  - streamlit_app/app.py 
+
+env:
+  - name: DATABRICKS_RUNTIME_ENV
+    value: "app"
+  - name: PYTHONPATH
+    value: "/app"
+  - name: DATABRICKS_BUNDLE_ENV
+    value: ${bundle.environment}

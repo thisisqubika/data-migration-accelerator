@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
-"""
-Databricks Job Entry Point for Translation Graph
+"""Databricks job entrypoint and local runner helpers.
 
-This module provides a Databricks-compatible interface for running the translation graph
-in Databricks jobs and pipelines. It handles DBFS paths, Volumes, and Databricks-specific
-configuration.
+Provides utilities to resolve DBFS/Volume paths and to run the translation
+graph both on Databricks and locally while preserving the same output semantics.
 """
 
 import os
 import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+from artifact_translation_package.utils.output_utils import make_timestamped_output_path, is_databricks_env
 
 
 from artifact_translation_package.graph_builder import build_translation_graph
 from artifact_translation_package.utils.file_processor import create_batches_from_file, process_files
 from artifact_translation_package.utils.types import ArtifactBatch
 from artifact_translation_package.config.constants import UnityCatalogConfig, LangGraphConfig
+from artifact_translation_package.utils.logger import get_logger
+from artifact_translation_package.utils.output_utils import utc_timestamp
+import re
 
 
 def get_dbfs_path(filepath: str) -> str:
@@ -29,14 +31,74 @@ def get_dbfs_path(filepath: str) -> str:
     Returns:
         Local filesystem path
     """
+    # Map dbfs:/ paths to an appropriate local path depending on runtime.
     if filepath.startswith("dbfs:/"):
-        return filepath.replace("dbfs:/", "/dbfs/")
+        # On Databricks, use the /dbfs/ mount for local file operations.
+        if is_databricks_env():
+            return filepath.replace("dbfs:/", "/dbfs/")
+        # When running locally, allow mapping dbfs:/ to a local directory
+        # configured via LOCAL_DBFS_MOUNT (default: ./ddl_output)
+        local_base = os.environ.get("LOCAL_DBFS_MOUNT", "./ddl_output")
+        # Build local path: dbfs:/a/b/c -> <local_base>/a/b/c
+        path_part = filepath[len("dbfs:/"):]
+        return os.path.join(local_base.rstrip(os.path.sep), path_part.lstrip("/"))
     elif filepath.startswith("/Volumes/"):
         return filepath
     elif filepath.startswith("/dbfs/"):
         return filepath
     else:
         return filepath
+
+
+def _create_results_dir_from_output(output_path: str, output_format: str) -> Optional[str]:
+    """Create and return a filesystem path to a per-run results directory.
+
+    Returns a local filesystem path even when `output_path` is a `dbfs:/` path
+    (it maps to `LOCAL_DBFS_MOUNT` when running locally).
+    """
+    if not output_path:
+        return None
+
+    try:
+        if output_format == "json":
+            ts_path = make_timestamped_output_path(output_path, "json")
+            return os.path.dirname(get_dbfs_path(ts_path))
+        else:
+            base_local = get_dbfs_path(output_path)
+            ts = utc_timestamp()
+            return os.path.join(base_local, ts)
+    except Exception:
+        return None
+
+
+def _persist_evaluation_and_summary(result: Dict[str, Any], output_dir: str, logger) -> None:
+    """Persist evaluation, translation results and observability summary into `output_dir`."""
+    if not output_dir:
+        return
+
+    # Persist evaluation/validation results
+    eval_results = result.get("evaluation_results")
+    if eval_results:
+        eval_dir = os.path.join(output_dir, "evaluations")
+        os.makedirs(eval_dir, exist_ok=True)
+        eval_path = os.path.join(eval_dir, "evaluation_results.json")
+        with open(eval_path, 'w', encoding='utf-8') as f:
+            json.dump(eval_results, f, indent=2, default=str)
+        logger.info("Evaluation/validation results saved", {"path": eval_path, "count": len(eval_results)})
+
+    # Persist main translation results
+    translation_path = os.path.join(output_dir, "translation_results.json")
+    with open(translation_path, 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=2, default=str)
+    logger.info("Translation results saved", {"path": translation_path})
+
+    # Persist summary/observability if present
+    summary = result.get("observability")
+    if summary:
+        summary_path = os.path.join(output_dir, "results_summary.json")
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            json.dump(summary, f, indent=2, default=str)
+        logger.info("Results summary saved", {"path": summary_path})
 
 
 def process_translation_job(
@@ -64,46 +126,63 @@ def process_translation_job(
     context["job_type"] = "databricks"
     context["batch_size"] = batch_size
     
-    print(f"Starting translation job")
-    print(f"Input files: {input_files}")
-    print(f"Batch size: {batch_size}")
-    print(f"Output path: {output_path}")
-    print(f"Output format: {output_format}")
-    print("-" * 50)
-    
+    # If an output_path is provided, pre-create a timestamped results directory
+    # and inject it into the batch context so evaluation nodes persist into
+    # the per-run folder instead of a global `evaluation_results` directory.
+    if output_path:
+        results_dir = _create_results_dir_from_output(output_path, output_format)
+        if results_dir and not os.path.exists(results_dir):
+            os.makedirs(results_dir, exist_ok=True)
+        if results_dir:
+            context["results_dir"] = results_dir
+            try:
+                os.environ["DDL_OUTPUT_DIR"] = results_dir
+            except Exception:
+                pass
+
+    logger = get_logger("databricks_job")
     graph = build_translation_graph()
-    
     all_batches = []
     for filepath in input_files:
         local_path = get_dbfs_path(filepath)
-        print(f"Processing file: {local_path}")
-        
         if not os.path.exists(local_path):
             raise FileNotFoundError(f"File not found: {local_path}")
-        
         batches = create_batches_from_file(local_path, batch_size, context)
         all_batches.extend(batches)
-        print(f"  Created {len(batches)} batch(es) from {local_path}")
-    
-    print(f"\nTotal batches to process: {len(all_batches)}")
-    print("-" * 50)
-    
     result = graph.run_batches(all_batches)
-    
     if output_path:
+        # Always determine output_dir for JSON side outputs
         if output_format == "json":
             output_local_path = get_dbfs_path(output_path)
             output_dir = os.path.dirname(output_local_path)
             if output_dir and not os.path.exists(output_dir):
                 os.makedirs(output_dir, exist_ok=True)
-
+            # Save main results
             with open(output_local_path, 'w', encoding='utf-8') as f:
                 json.dump(result, f, indent=2, default=str)
-
-            print(f"\nJSON results saved to: {output_local_path}")
+            logger.info("JSON results saved", {"path": output_local_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
         elif output_format == "sql":
-            save_sql_files(result, output_path)
-
+            # Use pre-created timestamped results_dir when available so evaluation
+            # writers and SQL files land in the same per-run folder.
+            results_dir = context.get("results_dir")
+            if results_dir:
+                save_sql_files(result, results_dir)
+                logger.info("SQL files saved", {"path": results_dir})
+                output_dir = results_dir
+            else:
+                save_sql_files(result, output_path)
+                logger.info("SQL files saved", {"path": output_path})
+                output_local_path = get_dbfs_path(output_path)
+                ts = None
+                if os.path.exists(output_local_path) and os.path.isdir(output_local_path):
+                    subdirs = [d for d in os.listdir(output_local_path) if os.path.isdir(os.path.join(output_local_path, d))]
+                    if subdirs:
+                        ts = max(subdirs)
+                output_dir = os.path.join(output_local_path, ts) if ts else output_local_path
+        else:
+            output_dir = None
+        if output_dir:
+            _persist_evaluation_and_summary(result, output_dir, logger)
     return result
 
 
@@ -129,47 +208,35 @@ def process_from_dbutils(
     try:
         import dbutils
     except ImportError:
-        raise ImportError(
-            "dbutils not available. Use process_translation_job() instead or run in Databricks environment."
-        )
-    
+        raise ImportError("dbutils not available. Use process_translation_job() instead or run in Databricks environment.")
     context = {
         "job_type": "databricks",
         "batch_size": batch_size,
         "using_dbutils": True
     }
-    
     graph = build_translation_graph()
     all_batches = []
-    
     for filepath in input_files:
-        print(f"Reading file: {filepath}")
-        
         if filepath.startswith("dbfs:/"):
             content = dbutils.fs.head(filepath)
             local_temp_path = f"/tmp/{os.path.basename(filepath)}"
-            
             with open(local_temp_path, 'w', encoding='utf-8') as f:
                 f.write(content)
-            
             batches = create_batches_from_file(local_temp_path, batch_size, context)
             all_batches.extend(batches)
-            
             os.remove(local_temp_path)
         else:
             batches = create_batches_from_file(filepath, batch_size, context)
             all_batches.extend(batches)
-    
     result = graph.run_batches(all_batches)
-    
     if output_path:
         if output_format == "json":
             output_json = json.dumps(result, indent=2, default=str)
             dbutils.fs.put(output_path, output_json)
-            print(f"JSON results saved to: {output_path}")
+            logger = get_logger("databricks_job")
+            logger.info("JSON results saved to dbfs", {"path": output_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
         elif output_format == "sql":
             save_sql_files_dbutils(result, output_path)
-
     return result
 
 
@@ -194,26 +261,16 @@ def process_from_volume(
     """
     if not volume_path.startswith("/Volumes/"):
         raise ValueError(f"Volume path must start with /Volumes/, got: {volume_path}")
-    
     if not os.path.exists(volume_path):
         raise FileNotFoundError(f"Volume path not found: {volume_path}")
-    
-    json_files = []
-    for file in os.listdir(volume_path):
-        if file.endswith('.json'):
-            if artifact_types is None:
-                json_files.append(os.path.join(volume_path, file))
-            else:
-                file_lower = file.lower()
-                if any(artifact_type.lower() in file_lower for artifact_type in artifact_types):
-                    json_files.append(os.path.join(volume_path, file))
-    
+    json_files = [os.path.join(volume_path, file)
+                  for file in os.listdir(volume_path)
+                  if file.endswith('.json') and (
+                      artifact_types is None or any(artifact_type.lower() in file.lower() for artifact_type in artifact_types)
+                  )]
     if not json_files:
-        print(f"No JSON files found in {volume_path}")
         return {"metadata": {"total_results": 0, "errors": []}}
-    
-    print(f"Found {len(json_files)} JSON file(s) to process")
-    return process_translation_job(json_files, output_path, batch_size)
+    return process_translation_job(json_files, output_path, batch_size, output_format=output_format)
 
 
 
@@ -228,6 +285,16 @@ def save_sql_files(result: Dict[str, Any], output_base_path: str):
     output_local_path = get_dbfs_path(output_base_path)
     output_dir = os.path.dirname(output_local_path) if os.path.isfile(output_local_path) else output_local_path
 
+    # If caller passed a base directory without a timestamp, create a timestamped subdirectory
+    # If the provided path already ends with a timestamp-like folder, reuse it.
+    logger = get_logger("databricks_job")
+    timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$")
+    base_name = os.path.basename(output_dir.rstrip(os.path.sep))
+    if os.path.exists(output_dir) and os.path.isdir(output_dir) and not timestamp_pattern.match(base_name):
+        # create timestamped folder under the base
+        ts = utc_timestamp()
+        output_dir = os.path.join(output_dir, ts)
+    # Ensure directory exists
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
 
@@ -266,11 +333,9 @@ def save_sql_files(result: Dict[str, Any], output_base_path: str):
 
                 total_sql_files += 1
                 total_sql_statements += len(sql_statements)
-                print(f"   ✓ Saved {len(sql_statements)} {artifact_type} SQL statements to {sql_filename}")
+                logger.info(f"Saved SQL statements", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
 
-    print(f"\nSQL files saved to: {output_dir}")
-    print(f"Total SQL files: {total_sql_files}")
-    print(f"Total SQL statements: {total_sql_statements}")
+    logger.info("SQL files saved", {"path": output_dir, "total_files": total_sql_files, "total_statements": total_sql_statements})
 
 
 def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
@@ -287,10 +352,23 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
     if not output_base_path.endswith('/'):
         output_base_path += '/'
 
+    # If caller passed a base directory without timestamp, append a timestamped subdirectory.
+    # If the provided path already ends with a timestamp-like folder, reuse it.
+    timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$")
+    segments = [s for s in output_base_path.split('/') if s]
+    last_seg = segments[-1] if segments else ''
+    if timestamp_pattern.match(last_seg):
+        # already timestamped
+        pass
+    else:
+        ts = utc_timestamp()
+        output_base_path = output_base_path + ts + '/'
+
     artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
 
     total_sql_files = 0
     total_sql_statements = 0
+    logger = get_logger("databricks_job")
 
     for artifact_type in artifact_types:
         if artifact_type in result and result[artifact_type]:
@@ -323,11 +401,9 @@ def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
 
                 total_sql_files += 1
                 total_sql_statements += len(sql_statements)
-                print(f"   ✓ Saved {len(sql_statements)} {artifact_type} SQL statements to {sql_filename}")
+                logger.info("Saved SQL statements to dbfs", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
 
-    print(f"\nSQL files saved to: {output_base_path}")
-    print(f"Total SQL files: {total_sql_files}")
-    print(f"Total SQL statements: {total_sql_statements}")
+    logger.info("SQL files saved to dbfs", {"path": output_base_path, "total_files": total_sql_files, "total_statements": total_sql_statements})
 def main():
     """Main entry point for Databricks translation jobs."""
     import argparse
@@ -405,10 +481,16 @@ def databricks_entrypoint():
         f"{UnityCatalogConfig.SCHEMA.value}/"
         f"{UnityCatalogConfig.RAW_VOLUME.value}/"
     )
-    batch_size = LangGraphConfig.DDL_BATCH_SIZE.value
-    output_format = LangGraphConfig.DDL_OUTPUT_FORMAT.value
-    output_path = None  # Optional - can be None for in-memory results
-    
+    # Respect env vars with fallbacks to constants so cluster/job-level env can override defaults
+    batch_size = int(os.environ.get("DDL_BATCH_SIZE") or LangGraphConfig.DDL_BATCH_SIZE.value)
+    output_format = (os.environ.get("DDL_OUTPUT_FORMAT") or LangGraphConfig.DDL_OUTPUT_FORMAT.value).lower()
+    # Default output_path comes from the LangGraphConfig constant.
+    # Allow an environment variable `DDL_OUTPUT_PATH` to override this (useful in Databricks jobs).
+    output_path = os.environ.get("DDL_OUTPUT_PATH") or LangGraphConfig.DDL_OUTPUT_DIR.value
+    # Treat empty string as no output (in-memory)
+    if output_path == "":
+        output_path = None
+    output_path = make_timestamped_output_path(output_path, output_format)
     print("=" * 60)
     print("Databricks Translation Job Starting")
     print("=" * 60)
@@ -417,21 +499,18 @@ def databricks_entrypoint():
     print(f"Output Format: {output_format}")
     print(f"Output Path:   {output_path or 'In-memory (no file output)'}")
     print("-" * 60)
-    
     result = process_from_volume(
         volume_path=volume_path,
         batch_size=batch_size,
         output_format=output_format,
         output_path=output_path
     )
-    
     print("\n" + "=" * 60)
     print("Translation Job Completed")
     print("=" * 60)
     print(f"Total Results: {result.get('metadata', {}).get('total_results', 0)}")
     print(f"Errors:        {len(result.get('metadata', {}).get('errors', []))}")
     print("=" * 60)
-    
     return result
 
 if __name__ == "__main__":
