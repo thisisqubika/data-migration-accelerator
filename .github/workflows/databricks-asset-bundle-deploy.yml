@@ -55,7 +55,7 @@ jobs:
     - name: Deploy bundle
       run: |
         databricks bundle deploy -t dev
-        databricks bundle run dbx-job-executor-app-2 -t dev 
+        databricks bundle run databricks_job_executor_app -t dev 
         databricks bundle summary
         databricks bundle resources
     
