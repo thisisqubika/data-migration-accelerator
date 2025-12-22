@@ -7,10 +7,10 @@ command:
   - streamlit 
   - run 
   - streamlit_app/app.py 
-  # - --server.port=8501
-  # - --server.address=0.0.0.0
-  # - --server.headless=true
-  # - --server.enableCORS=false
+  - --server.port=8501
+  - --server.address=0.0.0.0
+  - --server.headless=true
+  - --server.enableCORS=false
 env:
   - name: DATABRICKS_RUNTIME_ENV
     value: "app"
