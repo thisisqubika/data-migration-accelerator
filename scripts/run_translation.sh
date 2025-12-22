@@ -9,13 +9,15 @@ BATCH_SIZE=${2:-2}
 FORMAT=${3:-sql}
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-OUT_DIR="src/artifact_translation_package/out_sql_examples_${TIMESTAMP}"
+# Prefer an explicit DDL_OUTPUT_DIR if provided (e.g. from .env). Otherwise
+# fall back to creating a timestamped out_sql_examples_<timestamp> folder.
+OUT_DIR="${DDL_OUTPUT_DIR:-src/artifact_translation_package/out_sql_examples_${TIMESTAMP}}"
 
 echo "-> Running translation job"
 echo "   examples: ${EXAMPLES_GLOB}"
 echo "   batch size: ${BATCH_SIZE}"
 echo "   output format: ${FORMAT}"
-echo "   output dir: ${OUT_DIR}"
+echo "   output dir: ${OUT_DIR} (DDL_OUTPUT_DIR=${DDL_OUTPUT_DIR:-unset})"
 
 mkdir -p "$OUT_DIR"
 

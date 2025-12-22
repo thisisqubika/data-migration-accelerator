@@ -14,7 +14,8 @@ class LangGraphConfig(Enum):
     #DDL Settings
     DDL_BATCH_SIZE = 8
     # Default outputs for Databricks should go to a Volume mounted path
-    DDL_OUTPUT_DIR = "/Volumes/qubika_partner_solutions.migration_accelerator.outputs"
+    # Use segmented path segments: /Volumes/<catalog>/<schema>/<volume_name>/
+    DDL_OUTPUT_DIR = "/Volumes/qubika_partner_solutions/migration_accelerator/outputs"
     
     # Optional: DDL Generation Settings
     #DDL_CATALOG_NAME= "demo_catalog"

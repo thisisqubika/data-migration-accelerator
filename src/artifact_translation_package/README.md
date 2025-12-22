@@ -164,6 +164,28 @@ DATABRICKS_TOKEN=your-databricks-token
 DDL_OUTPUT_DIR=./output
 ```
 
+### Local vs Databricks output paths
+
+- Databricks is the canonical runtime and configuration may reference DBFS paths like `dbfs:/some/base`.
+- When running locally (for example via `make translate` or the provided run scripts), the code will automatically map `dbfs:/...` paths to a local directory so outputs are written to your machine.
+- Control the local mapping with the `LOCAL_DBFS_MOUNT` environment variable (default: `./ddl_output`). Example:
+
+```bash
+# use default local mapping
+make translate
+
+# override local mapping directory
+export LOCAL_DBFS_MOUNT=./my_local_dbfs_mount
+make translate
+```
+
+- Evaluation/validation JSON files are written into the per-run timestamped results folder under an `evaluation_results/` subdirectory (not into a global `ddl_output/evaluation_results` folder) when an output path is used. This keeps SQL, JSON, and evaluation artifacts grouped by run for easier inspection.
+
+Note: the included `scripts/run_translation.sh` helper prefers the `DDL_OUTPUT_DIR` environment
+variable when present (for example from your `.env` file). If `DDL_OUTPUT_DIR` is unset the helper
+falls back to creating `src/artifact_translation_package/out_sql_examples_<timestamp>` as before.
+
+
 ## Architecture
 
 ### Translation Graph
