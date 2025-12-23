@@ -16,8 +16,7 @@ def get_output_directory() -> str:
     Returns:
         Path to output directory
     """
-    current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    output_dir = os.path.join(current_dir,"translation_graph", "output")
+    output_dir = os.environ["DDL_OUTPUT_PATH"]
     return output_dir
 
 def main():
