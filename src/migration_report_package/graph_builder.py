@@ -29,13 +29,13 @@ def input_node(state: MigrationState) -> MigrationState:
         res = os.path.join(input_path, name)
         if not os.path.isdir(res):
             continue
-        ts = name.replace("results_", "")
-        run_dt = datetime.strptime(ts, "%Y%m%d_%H%M%S")
+        run_dt = datetime.strptime(name, "%Y-%m-%dT%H-%M-%SZ")
         output_dirs.append((run_dt, res))
     
     _ , latest = max(output_dirs, key=lambda x: x[0])
     ## Get translation results and evaluation notes
     raw = {"translation_results": [], "evaluation": []}
+    latest = os.path.join(latest, os.path.basename(latest))
     for name in os.listdir(latest):
         out = os.path.join(latest, name)
         if os.path.isdir(out):
@@ -45,7 +45,7 @@ def input_node(state: MigrationState) -> MigrationState:
                     with open(file, "r", encoding="utf-8") as f:
                         raw["evaluation"].append(json.load(f))
         else:
-            if out.endswith(".json"):
+            if "translation_results.json" in os.path.basename(out).lower():
                 with open(out, "r", encoding="utf-8") as f:
                     raw["translation_results"].append(json.load(f))
     state["raw"] = raw

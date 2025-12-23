@@ -50,7 +50,7 @@ def main():
     if args.output_dir:
         input_dir = os.path.dirname(args.output_dir)
     
-    md_report, json_report = graph.run(os.environ["DDL_OUTPUT_PATH"])
+    md_report, json_report = graph.run(input_dir)
 
     print("Report done!")
 
