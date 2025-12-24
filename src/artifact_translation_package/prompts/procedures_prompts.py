@@ -102,7 +102,7 @@ Output must be either:
 
 
 Context: {context}
-Procedure Metadata: {procedure_metadata}
+Metadata: {metadata}
 """
 
     @classmethod

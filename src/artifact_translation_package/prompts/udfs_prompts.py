@@ -79,7 +79,7 @@ OUTPUT CONTRACT (STRICT)
 - NO assumptions about missing metadata
 
 Context: {context}
-Function Metadata: {function_metadata}
+Metadata: {metadata}
 """
 
     @classmethod

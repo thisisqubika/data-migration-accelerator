@@ -38,7 +38,7 @@ For each masking policy DDL statement, provide:
 Note: Databricks column masks require UDF creation and explicit application.
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide the translated UDF creation and column mask application statements."""
 

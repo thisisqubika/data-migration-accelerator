@@ -36,7 +36,7 @@ Important considerations:
 For each schema DDL statement, provide the equivalent Databricks SQL that creates the schema in Unity Catalog.
 
 Context: {context}
-Schema Metadata: {schema_metadata}
+Metadata: {metadata}
 
 Provide only the translated SQL statements, no explanations."""
 

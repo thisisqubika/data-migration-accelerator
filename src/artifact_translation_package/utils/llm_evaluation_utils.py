@@ -15,6 +15,7 @@ except ImportError:
 from artifact_translation_package.utils.evaluation_models import SQLEvaluationResult, SQLIssue, BatchSQLEvaluationResult
 from artifact_translation_package.prompts.evaluation_prompts import EvaluationPrompts
 from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.utils.sql_cleaner import clean_sql_preview
 
 
 def create_structured_llm(llm, batch_mode: bool = False):
@@ -86,16 +87,11 @@ def format_sql_statements_for_batch(sql_statements: List[str]) -> str:
     Returns:
         Formatted string with numbered SQL statements
     """
+    from artifact_translation_package.utils.sql_cleaner import remove_markdown_code_blocks
+    
     formatted = []
     for idx, sql in enumerate(sql_statements, start=1):
-        cleaned = sql.strip()
-        if cleaned.startswith("```sql"):
-            cleaned = cleaned[6:].strip()
-        if cleaned.startswith("```"):
-            cleaned = cleaned[3:].strip()
-        if cleaned.endswith("```"):
-            cleaned = cleaned[:-3].strip()
-        
+        cleaned = remove_markdown_code_blocks(sql.strip())
         formatted.append(f"SQL Statement {idx}:\n{cleaned}")
     
     return "\n\n---\n\n".join(formatted)
@@ -119,36 +115,6 @@ def parse_batch_evaluation_response(response: Any) -> List[SQLEvaluationResult]:
     
     raise TypeError(f"Expected BatchSQLEvaluationResult, got {type(response)}")
 
-
-def clean_sql_preview(sql_statement: str, max_length: int = 200) -> str:
-    """
-    Clean SQL statement for preview display in JSON.
-    Removes markdown code blocks and normalizes whitespace.
-    
-    Args:
-        sql_statement: Original SQL statement
-        max_length: Maximum length of preview
-        
-    Returns:
-        Cleaned SQL preview string
-    """
-    cleaned = sql_statement.strip()
-    
-    if cleaned.startswith("```sql"):
-        cleaned = cleaned[6:].strip()
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:].strip()
-    
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3].strip()
-    
-    cleaned = cleaned.replace("\n", " ").replace("\r", " ")
-    cleaned = " ".join(cleaned.split())
-    
-    if len(cleaned) > max_length:
-        cleaned = cleaned[:max_length] + "..."
-    
-    return cleaned
 
 
 def create_error_evaluation_result(error_message: str) -> SQLEvaluationResult:

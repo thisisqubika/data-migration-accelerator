@@ -34,7 +34,7 @@ Key mappings:
 For each stream DDL statement, provide the equivalent Databricks SQL that enables change data feed on the corresponding table.
 
 Context: {context}
-Stream Metadata: {stream_metadata}
+Metadata: {metadata}
 
 Provide only the translated SQL statements for enabling change data feed."""
 

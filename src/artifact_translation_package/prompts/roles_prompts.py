@@ -37,7 +37,7 @@ Important considerations:
 For each role DDL statement, provide the equivalent Databricks SQL that creates the Unity Catalog group.
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide only the translated SQL statements for group creation and membership hierarchy."""
 

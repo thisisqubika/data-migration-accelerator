@@ -86,7 +86,7 @@ OUTPUT CONTRACT (STRICT)
 - SQL comments MUST NOT end with semicolons
 
 Context: {context}
-Stage Metadata: {stage_metadata}
+Metadata: {metadata}
 """
 
     @classmethod

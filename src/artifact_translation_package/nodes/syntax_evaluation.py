@@ -1,6 +1,5 @@
 import os
 import json
-import re
 import logging
 from datetime import datetime
 from typing import List, Tuple, Dict, Any, Optional
@@ -14,6 +13,11 @@ from artifact_translation_package.utils.llm_evaluation_utils import (
     get_evaluation_batch_size,
     evaluate_batch_sql_statements,
     should_skip_sql_statement as llm_should_skip
+)
+from artifact_translation_package.utils.sql_cleaner import (
+    clean_sql_statement,
+    clean_sql_preview,
+    clean_error_message
 )
 from artifact_translation_package.config.ddl_config import get_config
 
@@ -52,96 +56,6 @@ def is_validation_enabled() -> bool:
     validation_config = get_validation_config()
     return validation_config.get("enabled", True)
 
-
-def normalize_newlines(sql_statement: str) -> str:
-    """
-    Normalize escaped newline characters to actual newlines.
-    
-    Args:
-        sql_statement: SQL statement with potentially escaped newlines
-        
-    Returns:
-        SQL statement with normalized newlines
-    """
-    cleaned = sql_statement
-    
-    cleaned = cleaned.replace("\\n", "\n")
-    cleaned = cleaned.replace("\\r", "\r")
-    cleaned = cleaned.replace("\\t", "\t")
-    
-    return cleaned
-
-
-def clean_error_message(error_message: str) -> str:
-    """
-    Clean error message by removing ANSI escape codes and normalizing whitespace.
-    
-    Args:
-        error_message: Raw error message from SQL parser
-        
-    Returns:
-        Cleaned error message string
-    """
-    if not error_message:
-        return ""
-    
-    cleaned = error_message
-    
-    cleaned = re.sub(r'\x1b\[[0-9;]*m', '', cleaned)
-    cleaned = cleaned.replace("\u001b[4m", "").replace("\u001b[0m", "")
-    
-    cleaned = cleaned.replace("\\n", "\n")
-    cleaned = cleaned.replace("\\r", "\r")
-    
-    cleaned = re.sub(r'\n\s*\n', '\n', cleaned)
-    
-    return cleaned.strip()
-
-
-def clean_sql_statement(sql_statement: str) -> str:
-    """
-    Clean SQL statement by removing markdown code blocks and normalizing newlines.
-    
-    Args:
-        sql_statement: Original SQL statement
-        
-    Returns:
-        Cleaned SQL statement with normalized newlines
-    """
-    cleaned = sql_statement.strip()
-    
-    if cleaned.startswith("```sql"):
-        cleaned = cleaned[6:].strip()
-    elif cleaned.startswith("```"):
-        cleaned = cleaned[3:].strip()
-    
-    if cleaned.endswith("```"):
-        cleaned = cleaned[:-3].strip()
-    
-    cleaned = normalize_newlines(cleaned)
-    
-    return cleaned
-
-
-def clean_sql_preview(sql_statement: str, max_length: int = 200) -> str:
-    """
-    Clean SQL statement for preview display in JSON.
-    
-    Args:
-        sql_statement: Original SQL statement
-        max_length: Maximum length of preview
-        
-    Returns:
-        Cleaned SQL preview string
-    """
-    cleaned = clean_sql_statement(sql_statement)
-    cleaned = cleaned.replace("\n", " ").replace("\r", " ")
-    cleaned = " ".join(cleaned.split())
-    
-    if len(cleaned) > max_length:
-        cleaned = cleaned[:max_length] + "..."
-    
-    return cleaned
 
 
 def is_procedure_or_function(sql_statement: str) -> bool:

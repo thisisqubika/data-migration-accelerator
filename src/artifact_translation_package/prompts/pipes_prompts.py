@@ -39,7 +39,7 @@ For each pipe DDL statement, provide the equivalent Databricks SQL statements fo
 - Any necessary table and streaming configurations
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide only the translated SQL statements for Auto Loader setup"""
 

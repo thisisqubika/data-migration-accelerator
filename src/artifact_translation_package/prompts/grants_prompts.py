@@ -78,7 +78,7 @@ For each UNIQUE (warehouse, privilege, grantee), emit ONLY:
 -- Snowflake: GRANT <PRIVILEGE> ON WAREHOUSE <NAME> TO ROLE <ROLE>
 
 Context: {context}
-Grant Metadata: {grant_metadata}
+Metadata: {metadata}
 
 OUTPUT SQL ONLY.
 """

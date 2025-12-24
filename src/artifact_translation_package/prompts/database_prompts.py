@@ -27,7 +27,7 @@ Key mappings:
 For each database DDL statement, provide the equivalent Databricks SQL that creates the catalog.
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide only the translated SQL statements, no explanations."""
 

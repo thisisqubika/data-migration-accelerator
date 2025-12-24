@@ -33,7 +33,7 @@ Key mappings:
 For each comment DDL statement, provide the equivalent Databricks SQL that adds comments to objects.
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide only the translated SQL statements for adding comments."""
 
