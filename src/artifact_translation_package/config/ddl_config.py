@@ -160,16 +160,6 @@ class DDLConfig:
                     "endpoint": LangGraphConfig.DBX_ENDPOINT.value
                 }
             },
-            "sequences_translator": {
-                "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.2,
-                "max_tokens": 4000,
-                "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
-                }
-            },
-            
             "evaluator": {
                 "provider": "databricks",
                 "model": "databricks-llama-4-maverick",

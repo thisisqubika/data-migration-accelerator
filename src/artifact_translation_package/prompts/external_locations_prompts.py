@@ -39,7 +39,7 @@ Important considerations for DDL generation:
 For each external location metadata object, generate the equivalent Databricks CREATE EXTERNAL LOCATION statement.
 
 Context: {context}
-External Location Metadata: {external_location_metadata}
+Metadata: {metadata}
 
 Provide only the generated CREATE EXTERNAL LOCATION SQL statement, no explanations."""
 

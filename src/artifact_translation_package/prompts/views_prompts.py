@@ -104,7 +104,7 @@ Important requirements for generated output:
 - Provide ONLY the translated SQL—no explanation or commentary.
 
 Context: {context}
-View Metadata: {view_metadata}
+Metadata: {metadata}
 
 Provide only the translated SQL statements, nothing else.
 """

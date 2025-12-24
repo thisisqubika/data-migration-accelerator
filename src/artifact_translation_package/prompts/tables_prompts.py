@@ -54,7 +54,7 @@ Example: CREATE TABLE catalog.schema.table_name (...) USING DELTA COMMENT '...'
 For each table metadata object, generate the equivalent Databricks CREATE TABLE statement.
 
 Context: {context}
-Table Metadata: {table_metadata}
+Metadata: {metadata}
 
 Provide only the generated CREATE TABLE SQL statement, no explanations."""
 

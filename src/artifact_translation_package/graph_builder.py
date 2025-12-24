@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Annotated, TypedDict
 from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_core.runnables import RunnableConfig
+import time
 
 from artifact_translation_package.nodes.router import artifact_router
 from artifact_translation_package.nodes.tables_translation import translate_tables
@@ -114,6 +115,9 @@ def translate_roles_node(state: TranslationState) -> TranslationState:
     if not state["batch"]:
         return state
     result = translate_roles(state["batch"])
+    return {**state, "results": state["results"] + [result]}
+
+
 def translate_grants_node(state: TranslationState) -> TranslationState:
     """Translate grant artifacts."""
     if not state["batch"]:
@@ -357,6 +361,105 @@ class TranslationGraph:
             summary = finalize()
             raise
 
+    def _initialize_merged_result(self) -> Dict[str, Any]:
+        """
+        Initialize empty merged result structure.
+        
+        Returns:
+            Dictionary with empty result structure
+        """
+        return {
+            "databases": [],
+            "schemas": [],
+            "tables": [],
+            "views": [],
+            "stages": [],
+            "external_locations": [],
+            "streams": [],
+            "pipes": [],
+            "roles": [],
+            "grants": [],
+            "tags": [],
+            "comments": [],
+            "masking_policies": [],
+            "udfs": [],
+            "procedures": [],
+            "metadata": {
+                "total_results": 0,
+                "errors": [],
+                "processing_stats": {}
+            }
+        }
+
+    def _merge_result_into(
+        self,
+        merged_result: Dict[str, Any],
+        result: Dict[str, Any]
+    ) -> None:
+        """
+        Merge a single result into the merged result structure.
+        
+        Args:
+            merged_result: The merged result dictionary to update
+            result: A single result dictionary to merge
+        """
+        for key, value in result.items():
+            if key == "metadata":
+                merged_result["metadata"]["total_results"] += result["metadata"].get("total_results", 0)
+                merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
+                merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
+            elif key == "observability":
+                # Merge observability data
+                if "observability" not in merged_result:
+                    merged_result["observability"] = {
+                        "run_id": value.get("run_id"),
+                        "total_duration": 0,
+                        "total_errors": 0,
+                        "total_warnings": 0,
+                        "total_retries": 0,
+                        "artifact_counts": {},
+                        "stages": {},
+                        "ai_metrics": {}
+                    }
+                
+                obs = merged_result["observability"]
+                
+                # Aggregate artifact_counts
+                for artifact_type, count in value.get("artifact_counts", {}).items():
+                    obs["artifact_counts"][artifact_type] = obs["artifact_counts"].get(artifact_type, 0) + count
+                
+                # Aggregate total_errors, total_warnings, total_retries
+                obs["total_errors"] += value.get("total_errors", 0)
+                obs["total_warnings"] += value.get("total_warnings", 0)
+                obs["total_retries"] += value.get("total_retries", 0)
+                
+                # Merge stages (aggregate items_processed and error_count)
+                for stage_name, stage_data in value.get("stages", {}).items():
+                    if stage_name not in obs["stages"]:
+                        obs["stages"][stage_name] = stage_data
+                    else:
+                        # Aggregate items_processed and error_count
+                        obs["stages"][stage_name]["items_processed"] += stage_data.get("items_processed", 0)
+                        obs["stages"][stage_name]["error_count"] += stage_data.get("error_count", 0)
+                
+                # Merge ai_metrics
+                for ai_key, ai_data in value.get("ai_metrics", {}).items():
+                    if ai_key not in obs["ai_metrics"]:
+                        obs["ai_metrics"][ai_key] = ai_data
+                    else:
+                        # Aggregate AI metrics
+                        obs["ai_metrics"][ai_key]["call_count"] += ai_data.get("call_count", 0)
+                        obs["ai_metrics"][ai_key]["total_latency"] += ai_data.get("total_latency", 0)
+                        obs["ai_metrics"][ai_key]["errors"] += ai_data.get("errors", 0)
+                        # Recalculate average latency
+                        if obs["ai_metrics"][ai_key]["call_count"] > 0:
+                            obs["ai_metrics"][ai_key]["average_latency"] = (
+                                obs["ai_metrics"][ai_key]["total_latency"] /
+                                obs["ai_metrics"][ai_key]["call_count"]
+                            )
+            elif key in merged_result:
+                merged_result[key].extend(value)
+
     def run_batches(self, batches: List[ArtifactBatch]) -> Dict[str, Any]:
         """
         Process multiple batches and aggregate results.
@@ -370,6 +473,7 @@ class TranslationGraph:
         self.logger.info("Starting batch processing", context={"batch_count": len(batches)})
         
         all_results = []
+        start_time = time.time()
 
         for batch in batches:
             result = self.run(batch)
@@ -377,41 +481,15 @@ class TranslationGraph:
                 all_results.append(result)
 
         if all_results:
-            # Merge all results
-            merged_result = {
-                "databases": [],
-                "schemas": [],
-                "tables": [],
-                "views": [],
-                "stages": [],
-                "external_locations": [],
-                "streams": [],
-                "pipes": [],
-                "roles": [],
-                "grants": [],
-                "tags": [],
-                "comments": [],
-                "masking_policies": [],
-                "udfs": [],
-                "procedures": [],
-                "metadata": {
-                    "total_results": 0,
-                    "errors": [],
-                    "processing_stats": {}
-                }
-            }
-
+            merged_result = self._initialize_merged_result()
+            
             for result in all_results:
-                for key, value in result.items():
-                    if key == "metadata":
-                        merged_result["metadata"]["total_results"] += result["metadata"].get("total_results", 0)
-                        merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
-                        merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
-                    elif key == "observability":
-                        # Keep only the last observability summary
-                        merged_result["observability"] = value
-                    elif key in merged_result:
-                        merged_result[key].extend(value)
+                self._merge_result_into(merged_result, result)
+            
+            # Calculate total duration
+            end_time = time.time()
+            if "observability" in merged_result:
+                merged_result["observability"]["total_duration"] = end_time - start_time
 
             self.logger.info("Batch processing completed", context={"total_batches": len(batches)})
             return merged_result
