@@ -87,3 +87,56 @@ def with_observability(node_name: str, artifact_type: str):
         return wrapper
     return decorator
 
+
+def with_observability_state(node_name: str, artifact_type: str):
+    """
+    Decorator factory for adding observability to graph node wrapper functions.
+    
+    Works with functions that receive a TranslationState parameter instead of a batch.
+    
+    Args:
+        node_name: Name of the node
+        artifact_type: Type of artifact being processed
+    
+    Returns:
+        Decorator function
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(state, *args, **kwargs):
+            obs = get_observability()
+            logger = obs.get_logger(node_name) if obs else None
+            metrics = obs.get_metrics() if obs else None
+            
+            batch = state.get("batch")
+            if not batch:
+                return func(state, *args, **kwargs)
+            
+            context = {
+                "artifact_type": batch.artifact_type,
+                "batch_size": len(batch.items)
+            }
+            
+            if metrics:
+                print(f"[OBSERVABILITY DEBUG] Starting stage: {node_name}")
+                metrics.start_stage(node_name, context)
+            else:
+                print(f"[OBSERVABILITY DEBUG] No metrics available for stage: {node_name}")
+            
+            try:
+                result = func(state, *args, **kwargs)
+                
+                if metrics:
+                    print(f"[OBSERVABILITY DEBUG] Ending stage: {node_name}")
+                    metrics.end_stage(node_name, success=True, items_processed=len(batch.items))
+                    metrics.record_artifact(artifact_type, count=len(batch.items))
+                
+                return result
+            except Exception as e:
+                if metrics:
+                    metrics.end_stage(node_name, success=False)
+                raise
+        
+        return wrapper
+    return decorator
+

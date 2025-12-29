@@ -38,7 +38,7 @@ Key mappings:
 For each tag DDL statement, provide the equivalent Databricks SQL that creates and assigns tags.
 
 Context: {context}
-Input DDL: {ddl}
+Metadata: {metadata}
 
 Provide only the translated SQL statements for tag creation and assignment."""
 

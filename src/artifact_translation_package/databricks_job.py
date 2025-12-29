@@ -10,6 +10,7 @@ import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 from artifact_translation_package.utils.output_utils import make_timestamped_output_path, is_databricks_env
+from artifact_translation_package.utils.sql_file_writer import save_sql_files
 
 
 from artifact_translation_package.graph_builder import build_translation_graph
@@ -18,7 +19,6 @@ from artifact_translation_package.utils.types import ArtifactBatch
 from artifact_translation_package.config.constants import UnityCatalogConfig, LangGraphConfig
 from artifact_translation_package.utils.logger import get_logger
 from artifact_translation_package.utils.output_utils import utc_timestamp
-import re
 
 
 def get_dbfs_path(filepath: str) -> str:
@@ -64,9 +64,21 @@ def _create_results_dir_from_output(output_path: str, output_format: str) -> Opt
             ts_path = make_timestamped_output_path(output_path, "json")
             return os.path.dirname(get_dbfs_path(ts_path))
         else:
+            import re
+            timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$")
             base_local = get_dbfs_path(output_path)
-            ts = utc_timestamp()
-            return os.path.join(base_local, ts)
+            
+            # Check if the path already ends with a timestamp
+            segments = [s for s in base_local.split(os.path.sep) if s]
+            last_seg = segments[-1] if segments else ''
+            
+            if timestamp_pattern.match(last_seg):
+                # Path already has a timestamp, use it as-is
+                return base_local
+            else:
+                # Add a new timestamp
+                ts = utc_timestamp()
+                return os.path.join(base_local, ts)
     except Exception:
         return None
 
@@ -101,6 +113,171 @@ def _persist_evaluation_and_summary(result: Dict[str, Any], output_dir: str, log
         logger.info("Results summary saved", {"path": summary_path})
 
 
+def _setup_job_context(
+    context: Optional[Dict[str, Any]],
+    batch_size: int
+) -> Dict[str, Any]:
+    """
+    Setup job context with job type and batch size.
+    
+    Args:
+        context: Optional context dictionary
+        batch_size: Number of artifacts per batch
+        
+    Returns:
+        Updated context dictionary
+    """
+    if context is None:
+        context = {}
+    
+    context["job_type"] = "databricks"
+    context["batch_size"] = batch_size
+    return context
+
+
+def _setup_output_directory(
+    output_path: str,
+    output_format: str,
+    context: Dict[str, Any]
+) -> Optional[str]:
+    """
+    Setup output directory and inject into context.
+    
+    Args:
+        output_path: Output path for results
+        output_format: Output format (json/sql)
+        context: Context dictionary to update
+        
+    Returns:
+        Results directory path or None
+    """
+    results_dir = _create_results_dir_from_output(output_path, output_format)
+    if results_dir and not os.path.exists(results_dir):
+        os.makedirs(results_dir, exist_ok=True)
+    if results_dir:
+        context["results_dir"] = results_dir
+        try:
+            os.environ["DDL_OUTPUT_DIR"] = results_dir
+        except Exception:
+            pass
+    return results_dir
+
+
+def _process_all_batches(
+    input_files: List[str],
+    batch_size: int,
+    context: Dict[str, Any]
+) -> List:
+    """
+    Process all input files and create batches.
+    
+    Args:
+        input_files: List of JSON file paths
+        batch_size: Number of artifacts per batch
+        context: Context dictionary
+        
+    Returns:
+        List of all batches
+    """
+    all_batches = []
+    for filepath in input_files:
+        local_path = get_dbfs_path(filepath)
+        if not os.path.exists(local_path):
+            raise FileNotFoundError(f"File not found: {local_path}")
+        batches = create_batches_from_file(local_path, batch_size, context)
+        all_batches.extend(batches)
+    return all_batches
+
+
+def _save_results_by_format(
+    result: Dict[str, Any],
+    output_path: str,
+    output_format: str,
+    context: Dict[str, Any],
+    logger
+) -> Optional[str]:
+    """
+    Save results based on output format.
+    
+    Args:
+        result: Translation results dictionary
+        output_path: Output path for results
+        output_format: Output format (json/sql)
+        context: Context dictionary
+        logger: Logger instance
+        
+    Returns:
+        Output directory path or None
+    """
+    if output_format == "json":
+        return _save_json_results(result, output_path, logger)
+    elif output_format == "sql":
+        return _save_sql_results(result, output_path, context, logger)
+    return None
+
+
+def _save_json_results(
+    result: Dict[str, Any],
+    output_path: str,
+    logger
+) -> str:
+    """
+    Save results as JSON file.
+    
+    Args:
+        result: Translation results dictionary
+        output_path: Output path for results
+        logger: Logger instance
+        
+    Returns:
+        Output directory path
+    """
+    output_local_path = get_dbfs_path(output_path)
+    output_dir = os.path.dirname(output_local_path)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir, exist_ok=True)
+    # Save main results
+    with open(output_local_path, 'w', encoding='utf-8') as f:
+        json.dump(result, f, indent=2, default=str)
+    logger.info("JSON results saved", {"path": output_local_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
+    return output_dir
+
+
+def _save_sql_results(
+    result: Dict[str, Any],
+    output_path: str,
+    context: Dict[str, Any],
+    logger
+) -> str:
+    """
+    Save results as SQL files.
+    
+    Args:
+        result: Translation results dictionary
+        output_path: Output path for results
+        context: Context dictionary
+        logger: Logger instance
+        
+    Returns:
+        Output directory path
+    """
+    results_dir = context.get("results_dir")
+    if results_dir:
+        save_sql_files(result, results_dir, use_dbutils=False, logger=logger)
+        logger.info("SQL files saved", {"path": results_dir})
+        return results_dir
+    else:
+        save_sql_files(result, output_path, use_dbutils=False, logger=logger)
+        logger.info("SQL files saved", {"path": output_path})
+        output_local_path = get_dbfs_path(output_path)
+        ts = None
+        if os.path.exists(output_local_path) and os.path.isdir(output_local_path):
+            subdirs = [d for d in os.listdir(output_local_path) if os.path.isdir(os.path.join(output_local_path, d))]
+            if subdirs:
+                ts = max(subdirs)
+        return os.path.join(output_local_path, ts) if ts else output_local_path
+
+
 def process_translation_job(
     input_files: List[str],
     output_path: Optional[str] = None,
@@ -120,69 +297,21 @@ def process_translation_job(
     Returns:
         Translation results dictionary
     """
-    if context is None:
-        context = {}
+    context = _setup_job_context(context, batch_size)
     
-    context["job_type"] = "databricks"
-    context["batch_size"] = batch_size
-    
-    # If an output_path is provided, pre-create a timestamped results directory
-    # and inject it into the batch context so evaluation nodes persist into
-    # the per-run folder instead of a global `evaluation_results` directory.
     if output_path:
-        results_dir = _create_results_dir_from_output(output_path, output_format)
-        if results_dir and not os.path.exists(results_dir):
-            os.makedirs(results_dir, exist_ok=True)
-        if results_dir:
-            context["results_dir"] = results_dir
-            try:
-                os.environ["DDL_OUTPUT_DIR"] = results_dir
-            except Exception:
-                pass
+        _setup_output_directory(output_path, output_format, context)
 
     logger = get_logger("databricks_job")
     graph = build_translation_graph()
-    all_batches = []
-    for filepath in input_files:
-        local_path = get_dbfs_path(filepath)
-        if not os.path.exists(local_path):
-            raise FileNotFoundError(f"File not found: {local_path}")
-        batches = create_batches_from_file(local_path, batch_size, context)
-        all_batches.extend(batches)
+    all_batches = _process_all_batches(input_files, batch_size, context)
     result = graph.run_batches(all_batches)
+    
     if output_path:
-        # Always determine output_dir for JSON side outputs
-        if output_format == "json":
-            output_local_path = get_dbfs_path(output_path)
-            output_dir = os.path.dirname(output_local_path)
-            if output_dir and not os.path.exists(output_dir):
-                os.makedirs(output_dir, exist_ok=True)
-            # Save main results
-            with open(output_local_path, 'w', encoding='utf-8') as f:
-                json.dump(result, f, indent=2, default=str)
-            logger.info("JSON results saved", {"path": output_local_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
-        elif output_format == "sql":
-            # Use pre-created timestamped results_dir when available so evaluation
-            # writers and SQL files land in the same per-run folder.
-            results_dir = context.get("results_dir")
-            if results_dir:
-                save_sql_files(result, results_dir)
-                logger.info("SQL files saved", {"path": results_dir})
-                output_dir = results_dir
-            else:
-                save_sql_files(result, output_path)
-                logger.info("SQL files saved", {"path": output_path})
-                output_local_path = get_dbfs_path(output_path)
-                ts = None
-                if os.path.exists(output_local_path) and os.path.isdir(output_local_path):
-                    subdirs = [d for d in os.listdir(output_local_path) if os.path.isdir(os.path.join(output_local_path, d))]
-                    if subdirs:
-                        ts = max(subdirs)
-                output_dir = os.path.join(output_local_path, ts) if ts else output_local_path
-        else:
-            output_dir = None
+        output_dir = _save_results_by_format(result, output_path, output_format, context, logger)
         if output_dir:
             _persist_evaluation_and_summary(result, output_dir, logger)
+    
     return result
 
 
@@ -236,7 +365,7 @@ def process_from_dbutils(
             logger = get_logger("databricks_job")
             logger.info("JSON results saved to dbfs", {"path": output_path, "total_results": result.get("metadata", {}).get("total_results", 0)})
         elif output_format == "sql":
-            save_sql_files_dbutils(result, output_path)
+            save_sql_files(result, output_path, use_dbutils=True, logger=logger)
     return result
 
 
@@ -274,136 +403,8 @@ def process_from_volume(
 
 
 
-def save_sql_files(result: Dict[str, Any], output_base_path: str):
-    """
-    Save SQL results as separate SQL files for each artifact type.
-
-    Args:
-        result: Translation results dictionary
-        output_base_path: Base path where SQL files will be saved
-    """
-    output_local_path = get_dbfs_path(output_base_path)
-    output_dir = os.path.dirname(output_local_path) if os.path.isfile(output_local_path) else output_local_path
-
-    # If caller passed a base directory without a timestamp, create a timestamped subdirectory
-    # If the provided path already ends with a timestamp-like folder, reuse it.
-    logger = get_logger("databricks_job")
-    timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$")
-    base_name = os.path.basename(output_dir.rstrip(os.path.sep))
-    if os.path.exists(output_dir) and os.path.isdir(output_dir) and not timestamp_pattern.match(base_name):
-        # create timestamped folder under the base
-        ts = utc_timestamp()
-        output_dir = os.path.join(output_dir, ts)
-    # Ensure directory exists
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-
-    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
-
-    total_sql_files = 0
-    total_sql_statements = 0
-
-    for artifact_type in artifact_types:
-        if artifact_type in result and result[artifact_type]:
-            sql_statements = result[artifact_type]
-            if sql_statements:
-                # Create SQL file name
-                sql_filename = f"{artifact_type}.sql"
-                sql_filepath = os.path.join(output_dir, sql_filename)
-
-                with open(sql_filepath, 'w', encoding='utf-8') as f:
-                    f.write(f"-- {artifact_type.upper()} DDL - Generated by Translation Graph\n")
-                    f.write(f"-- Generated: {os.path.basename(output_base_path)}\n\n")
-
-                    for i, sql in enumerate(sql_statements, 1):
-                        # Clean SQL (remove markdown code blocks if present)
-                        clean_sql = sql
-                        if clean_sql.startswith('```sql'):
-                            clean_sql = clean_sql[6:]
-                        if clean_sql.endswith('```'):
-                            clean_sql = clean_sql[:-3]
-                        clean_sql = clean_sql.strip()
-                        # Remove any trailing semicolons to avoid double ';;' when we append one
-                        while clean_sql.endswith(';'):
-                            clean_sql = clean_sql[:-1].rstrip()
-
-                        f.write(f"-- Statement {i}\n")
-                        f.write(clean_sql)
-                        f.write(";\n\n")
-
-                total_sql_files += 1
-                total_sql_statements += len(sql_statements)
-                logger.info(f"Saved SQL statements", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
-
-    logger.info("SQL files saved", {"path": output_dir, "total_files": total_sql_files, "total_statements": total_sql_statements})
 
 
-def save_sql_files_dbutils(result: Dict[str, Any], output_base_path: str):
-    """
-    Save SQL results as separate SQL files using dbutils.
-
-    Args:
-        result: Translation results dictionary
-        output_base_path: Base path where SQL files will be saved (dbfs:/ paths)
-    """
-    import dbutils
-
-    # Ensure output_base_path ends with a directory separator
-    if not output_base_path.endswith('/'):
-        output_base_path += '/'
-
-    # If caller passed a base directory without timestamp, append a timestamped subdirectory.
-    # If the provided path already ends with a timestamp-like folder, reuse it.
-    timestamp_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$")
-    segments = [s for s in output_base_path.split('/') if s]
-    last_seg = segments[-1] if segments else ''
-    if timestamp_pattern.match(last_seg):
-        # already timestamped
-        pass
-    else:
-        ts = utc_timestamp()
-        output_base_path = output_base_path + ts + '/'
-
-    artifact_types = ['tables', 'views', 'schemas', 'databases', 'stages', 'streams', 'pipes', 'roles', 'grants', 'tags', 'comments', 'masking_policies', 'udfs', 'procedures', 'external_locations']
-
-    total_sql_files = 0
-    total_sql_statements = 0
-    logger = get_logger("databricks_job")
-
-    for artifact_type in artifact_types:
-        if artifact_type in result and result[artifact_type]:
-            sql_statements = result[artifact_type]
-            if sql_statements:
-                # Create SQL file path
-                sql_filename = f"{artifact_type}.sql"
-                sql_filepath = f"{output_base_path}{sql_filename}"
-
-                sql_content = f"-- {artifact_type.upper()} DDL - Generated by Translation Graph\n"
-                sql_content += f"-- Generated: {output_base_path}\n\n"
-
-                for i, sql in enumerate(sql_statements, 1):
-                    # Clean SQL (remove markdown code blocks if present)
-                    clean_sql = sql
-                    if clean_sql.startswith('```sql'):
-                        clean_sql = clean_sql[6:]
-                    if clean_sql.endswith('```'):
-                        clean_sql = clean_sql[:-3]
-                    clean_sql = clean_sql.strip()
-                    # Remove any trailing semicolons to avoid double ';;' when appending one
-                    while clean_sql.endswith(';'):
-                        clean_sql = clean_sql[:-1].rstrip()
-
-                    sql_content += f"-- Statement {i}\n"
-                    sql_content += clean_sql
-                    sql_content += ";\n\n"
-
-                dbutils.fs.put(sql_filepath, sql_content)
-
-                total_sql_files += 1
-                total_sql_statements += len(sql_statements)
-                logger.info("Saved SQL statements to dbfs", {"artifact_type": artifact_type, "file": sql_filename, "statements": len(sql_statements)})
-
-    logger.info("SQL files saved to dbfs", {"path": output_base_path, "total_files": total_sql_files, "total_statements": total_sql_statements})
 def main():
     """Main entry point for Databricks translation jobs."""
     import argparse

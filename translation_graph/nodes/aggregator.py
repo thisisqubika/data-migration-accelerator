@@ -1,7 +1,6 @@
 from typing import List, Dict, Any, Optional
 from utils.types import TranslationResult
 from utils.error_handler import handle_node_error
-from utils.observability import get_observability
 
 
 @handle_node_error("aggregate_translations")
@@ -16,12 +15,6 @@ def aggregate_translations(*results: TranslationResult, evaluation_results: Opti
     Returns:
         Dictionary with merged results including all artifact types
     """
-    obs = get_observability()
-    metrics = obs.get_metrics() if obs else None
-    
-    if metrics:
-        metrics.start_stage("aggregate_translations", {"result_count": len(results)})
-    
     try:
         all_artifact_types = {
             "databases", "schemas", "tables", "views", "stages", "external_locations",
@@ -57,11 +50,4 @@ def aggregate_translations(*results: TranslationResult, evaluation_results: Opti
 
             merged["metadata"]["total_results"] += len(result.results)
         
-        if metrics:
-            metrics.end_stage("aggregate_translations", success=True, items_processed=len(results))
-        
         return merged
-    except Exception as e:
-        if metrics:
-            metrics.end_stage("aggregate_translations", success=False)
-        raise
