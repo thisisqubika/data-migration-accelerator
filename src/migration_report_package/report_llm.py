@@ -24,17 +24,36 @@ The migration output will include:
 
 REPORT STRUCTURE:
 
-The report must be returned in MARKDOWN format.
+The report must be returned in MARKDOWN format. Make all H2 and H3 headers UPPERCASE and numbered. Between each H2 header and its content add a line break. Where possible, introduce tabs or visual separation between sections to enhance scanability. 
+
 The report must include the following sections:
 - ## Overview: Summary of migration process, always provide a numeric summary following the example below:
    ---------
     - Artifacts Processed: 8 (3 schemas, 2 tables, 2 views)
     - Migration Errors: 0
-    - Migration Warnings: 0
     - Validation Errors: 2
+    - Migration Warnings: 0
+    - Overall Status: Partial Success (schemas and views completed; tables require fixes)
    ---------
+Below the summary above include the following table, make sure to align the colons and the three columns. 
+
+>  **Error Severity Guide**                                                            
+> ------------------------------
+>  \[CRITICAL\]  Migration Error     : Translation or execution failed.                        
+>  \[BLOCKER\]   Validation Error    : Translation completed but failed validation.            
+>  \[WARNING\]   Migration Warning   : Non-blocking issues; artifact is deployable.   
+
 - ## Objects requiring manual review
-- ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Task Failure. If no error just add "-". Below the table add a subnote with the following explanation: "The status can be one of: **Success** (Artifact was translated and validated successfully), **Validation Error** (Artifact was translated but failed validation), **Translation Error** (Artifact was not translated), **Warning** (Artifact was translated but has warnings)".
+- ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Task Failure. If no error just add "-". Below the table add the following explanation, make sure to align the colons and the three columns.
+
+> **STATUS & SEVERITY GUIDE**                                                              
+> ------------------------------
+>  \[SUCCESS\]   Success            : Artifact translated and validated successfully.                       
+>  \[CRITICAL\]  Translation Error  : Artifact was not translated.                       
+>  \[BLOCKER\]   Validation Error   : Translation completed but failed validation.            
+>  \[WARNING\]   Warning            : Translated with non-blocking issues or limitations.  
+
+
 - ## Migration Errors and Warnings
 - ## Analysis: Section that must include the following subsections:
     - Key Findings
@@ -51,7 +70,6 @@ The report must include the following sections:
     - Tables require manual intervention before deployment.
     - No impact on schemas or views.
     ---------
-- ## Performance metrics
 - ## Further Analysis: Make sure to include the following:
     - Common translation errors
     - Patterns in warnings or inconsistencies
@@ -60,6 +78,16 @@ The report must include the following sections:
     - Dependencies that failed or were skipped
     - Recommendations for improving translation rules
     - Suggested workaround for unsupported features
+- ## Performance metrics: include total duration, translation time, validation time, average time per artifact, pipeline execution status, retries, timeouts. Format it like this example, both columns should be aligned:
+  ---------
+- Total Duration: 		31.17 seconds
+- Translation Time: 		N/A
+- Validation Time: 		N/A
+- Average Time per Artifact: 	~3.9 seconds
+- Pipeline Execution: 		Completed successfully
+- Retries: 			0
+- Timeouts: 
+  ---------
 
 The migration output is:
 Count: {count}
