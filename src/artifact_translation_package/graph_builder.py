@@ -433,14 +433,19 @@ class TranslationGraph:
                 obs["total_warnings"] += value.get("total_warnings", 0)
                 obs["total_retries"] += value.get("total_retries", 0)
                 
-                # Merge stages (aggregate items_processed and error_count)
+                # Merge stages (aggregate items_processed, error_count and duration)
                 for stage_name, stage_data in value.get("stages", {}).items():
                     if stage_name not in obs["stages"]:
-                        obs["stages"][stage_name] = stage_data
+                        obs["stages"][stage_name] = stage_data.copy()
                     else:
-                        # Aggregate items_processed and error_count
+                        # Aggregate metrics
                         obs["stages"][stage_name]["items_processed"] += stage_data.get("items_processed", 0)
                         obs["stages"][stage_name]["error_count"] += stage_data.get("error_count", 0)
+                        
+                        # Aggregate duration if present
+                        if "duration" in stage_data and stage_data["duration"] is not None:
+                            current_duration = obs["stages"][stage_name].get("duration", 0) or 0
+                            obs["stages"][stage_name]["duration"] = current_duration + stage_data["duration"]
                 
                 # Merge ai_metrics
                 for ai_key, ai_data in value.get("ai_metrics", {}).items():

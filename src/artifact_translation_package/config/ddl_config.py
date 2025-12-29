@@ -195,7 +195,7 @@ class DDLConfig:
             "enabled": True,
             "report_all_results": False,
             "llm_validated_artifacts": ["procedures", "pipes"],
-            "skip_unsupported_artifacts": ["grants", "procedures", "udfs"]
+            "skip_unsupported_artifacts": ["grants", "procedures", "udfs", "stages", "pipes", "roles"]
         },
         "langsmith": {
             "tracing": LangGraphConfig.LANGSMITH_TRACING.value,

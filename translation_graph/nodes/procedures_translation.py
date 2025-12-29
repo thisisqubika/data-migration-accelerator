@@ -3,7 +3,6 @@ from prompts.procedures_prompts import ProceduresPrompts
 from utils.types import ArtifactBatch, TranslationResult
 from utils.llm_utils import create_llm_for_node
 from utils.error_handler import handle_node_error, retry_on_error
-from utils.observability import get_observability
 from utils.translation_helpers import build_translation_context, parse_artifact_json, invoke_llm_translation
 
 
@@ -19,18 +18,6 @@ def translate_procedures(batch: ArtifactBatch) -> TranslationResult:
     Returns:
         TranslationResult with translated procedure DDL
     """
-    obs = get_observability()
-    logger = obs.get_logger("translate_procedures") if obs else None
-    metrics = obs.get_metrics() if obs else None
-    
-    context_dict = {
-        "artifact_type": batch.artifact_type,
-        "batch_size": len(batch.items)
-    }
-    
-    if metrics:
-        metrics.start_stage("translate_procedures", context_dict)
-    
     try:
         from config.ddl_config import get_config
         config = get_config()
@@ -60,8 +47,6 @@ def translate_procedures(batch: ArtifactBatch) -> TranslationResult:
                     errors.append(error_msg)
 
             except Exception as e:
-                if logger:
-                    logger.error(f"Error processing procedure", context=context_dict, error=str(e))
                 errors.append(f"Error processing procedure: {str(e)}")
 
         result = TranslationResult(
@@ -71,12 +56,4 @@ def translate_procedures(batch: ArtifactBatch) -> TranslationResult:
             metadata={"count": len(batch.items), "processed": len(results)}
         )
         
-        if metrics:
-            metrics.end_stage("translate_procedures", success=len(errors) == 0, items_processed=len(batch.items))
-            metrics.record_artifact("procedures", count=len(batch.items))
-        
         return result
-    except Exception as e:
-        if metrics:
-            metrics.end_stage("translate_procedures", success=False)
-        raise

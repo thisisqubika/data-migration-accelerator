@@ -128,6 +128,10 @@ def process_artifact_translation(
     # Get observability metrics
     obs = get_observability()
     metrics = obs.get_metrics() if obs else None
+    
+    stage_name = f"translate_{artifact_type}"
+    if metrics:
+        metrics.start_stage(stage_name, {"batch_size": len(batch.items)})
 
     for artifact_json in batch.items:
         try:
@@ -167,6 +171,9 @@ def process_artifact_translation(
             # Record artifact to metrics (even if it had an error)
             if metrics:
                 metrics.record_artifact(artifact_type, count=1)
+
+    if metrics:
+        metrics.end_stage(stage_name, success=len(errors) == 0, items_processed=len(results))
 
     return TranslationResult(
         artifact_type=artifact_type,

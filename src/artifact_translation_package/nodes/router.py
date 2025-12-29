@@ -2,6 +2,7 @@ from artifact_translation_package.config.ddl_config import get_config
 from artifact_translation_package.prompts.router_prompts import RouterPrompts
 from artifact_translation_package.utils.types import ArtifactBatch
 from artifact_translation_package.utils.llm_utils import create_llm_for_node
+from artifact_translation_package.utils.observability import get_observability
 
 
 def artifact_router(batch: ArtifactBatch) -> str:
@@ -19,6 +20,12 @@ def artifact_router(batch: ArtifactBatch) -> str:
         "stages", "external_locations", "streams", "pipes", "roles", "grants", "tags",
         "comments", "masking_policies", "udfs", "procedures", "sequences"
     """
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    
+    if metrics:
+        metrics.start_stage("artifact_router", {"has_items": len(batch.items) > 0})
+
     if batch.artifact_type:
         # Note: certain artifact types (previously file_formats) are intentionally excluded from runtime routing
         valid_nodes = {
@@ -29,12 +36,13 @@ def artifact_router(batch: ArtifactBatch) -> str:
         # If the batch already declares an artifact_type and it's supported,
         # return it directly. If it's declared but not supported by the runtime
         # graph, return the aggregator to skip translation for that batch.
+        target_node = "aggregator"
         if batch.artifact_type in valid_nodes:
-            return batch.artifact_type
-        # Return the aggregator node to skip translation for unsupported
-        # artifact types so the batch will be ignored by the translation
-        # nodes and merged as metadata only.
-        return "aggregator"
+            target_node = batch.artifact_type
+            
+        if metrics:
+            metrics.end_stage("artifact_router", success=True, items_processed=1)
+        return target_node
     
     config = get_config()
     llm = create_llm_for_node("smart_router")
@@ -54,8 +62,12 @@ def artifact_router(batch: ArtifactBatch) -> str:
         "masking_policies", "udfs", "procedures", "sequences"
     }
 
+    target_node = "tables"
     for node in valid_nodes:
         if node.lower() in response_text.lower():
-            return node
+            target_node = node
+            break
 
-    return "tables"
+    if metrics:
+        metrics.end_stage("artifact_router", success=True, items_processed=1)
+    return target_node

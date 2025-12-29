@@ -20,6 +20,7 @@ from artifact_translation_package.utils.sql_cleaner import (
     clean_error_message
 )
 from artifact_translation_package.config.ddl_config import get_config
+from artifact_translation_package.utils.observability import get_observability
 
 # Set up logger for this module
 logger = logging.getLogger(__name__)
@@ -513,9 +514,19 @@ def evaluate_batch(
     """
     logger.info(f"Starting batch validation for artifact type: {batch.artifact_type}, batch size: {len(batch.items)}")
 
+    # Get observability metrics
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    
+    stage_name = f"evaluate_{batch.artifact_type}"
+    if metrics:
+        metrics.start_stage(stage_name, {"batch_size": len(batch.items)})
+
     # Check if validation is enabled
     if not is_validation_enabled():
         logger.info("Validation disabled via configuration")
+        if metrics:
+            metrics.end_stage(stage_name, success=True, items_processed=0)
         return True, "", BatchSyntaxValidationResult(
             results=[],
             total_statements=0,
@@ -526,6 +537,8 @@ def evaluate_batch(
     # Check if this artifact type should be skipped
     if should_skip_artifact_validation(batch.artifact_type):
         logger.info(f"Skipping validation for {batch.artifact_type} - unsupported by SQLGlot")
+        if metrics:
+            metrics.end_stage(stage_name, success=True, items_processed=0)
         return True, "", BatchSyntaxValidationResult(
             results=[],
             total_statements=0,
@@ -553,9 +566,15 @@ def evaluate_batch(
         )
         logger.info(f"Persisted validation results to: {filepath}")
         all_valid = validation_result.invalid_statements == 0
+        
+        if metrics:
+            metrics.end_stage(stage_name, success=all_valid, items_processed=len(evaluated_indices))
+            
         return all_valid, filepath, validation_result
 
     logger.info("No statements evaluated")
+    if metrics:
+        metrics.end_stage(stage_name, success=True, items_processed=0)
     return True, "", BatchSyntaxValidationResult(
         results=[],
         total_statements=0,
