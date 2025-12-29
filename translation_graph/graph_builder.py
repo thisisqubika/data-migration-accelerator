@@ -50,128 +50,432 @@ def translate_databases_node(state: TranslationState) -> TranslationState:
     """Translate database artifacts."""
     if not state["batch"]:
         return state
-    result = translate_databases(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_databases", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_databases(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_databases", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("databases", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_databases", success=False)
+        raise
 
 
 def translate_schemas_node(state: TranslationState) -> TranslationState:
     """Translate schema artifacts."""
     if not state["batch"]:
         return state
-    result = translate_schemas(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_schemas", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_schemas(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_schemas", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("schemas", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_schemas", success=False)
+        raise
 
 
 def translate_tables_node(state: TranslationState) -> TranslationState:
     """Translate table artifacts."""
     if not state["batch"]:
         return state
-    result = translate_tables(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_tables", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_tables(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_tables", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("tables", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_tables", success=False)
+        raise
 
 
 def translate_views_node(state: TranslationState) -> TranslationState:
     """Translate view artifacts."""
     if not state["batch"]:
         return state
-    result = translate_views(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_views", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_views(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_views", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("views", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_views", success=False)
+        raise
 
 
 def translate_stages_node(state: TranslationState) -> TranslationState:
     """Translate stage artifacts."""
     if not state["batch"]:
         return state
-    result = translate_stages(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_stages", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_stages(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_stages", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("stages", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_stages", success=False)
+        raise
 
 
 def translate_external_locations_node(state: TranslationState) -> TranslationState:
     """Translate external location artifacts."""
     if not state["batch"]:
         return state
-    result = translate_external_locations(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_external_locations", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_external_locations(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_external_locations", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("external_locations", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_external_locations", success=False)
+        raise
 
 
 def translate_streams_node(state: TranslationState) -> TranslationState:
     """Translate stream artifacts."""
     if not state["batch"]:
         return state
-    result = translate_streams(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_streams", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_streams(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_streams", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("streams", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_streams", success=False)
+        raise
 
 
 def translate_pipes_node(state: TranslationState) -> TranslationState:
     """Translate pipe artifacts."""
     if not state["batch"]:
         return state
-    result = translate_pipes(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_pipes", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_pipes(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_pipes", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("pipes", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_pipes", success=False)
+        raise
 
 
 def translate_roles_node(state: TranslationState) -> TranslationState:
     """Translate role artifacts."""
     if not state["batch"]:
         return state
-    result = translate_roles(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_roles", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_roles(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_roles", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("roles", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_roles", success=False)
+        raise
 
 
 def translate_grants_node(state: TranslationState) -> TranslationState:
     """Translate grant artifacts."""
     if not state["batch"]:
         return state
-    result = translate_grants(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_grants", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_grants(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_grants", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("grants", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_grants", success=False)
+        raise
 
 
 def translate_tags_node(state: TranslationState) -> TranslationState:
     """Translate tag artifacts."""
     if not state["batch"]:
         return state
-    result = translate_tags(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_tags", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_tags(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_tags", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("tags", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_tags", success=False)
+        raise
 
 
 def translate_comments_node(state: TranslationState) -> TranslationState:
     """Translate comment artifacts."""
     if not state["batch"]:
         return state
-    result = translate_comments(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_comments", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_comments(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_comments", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("comments", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_comments", success=False)
+        raise
 
 
 def translate_masking_policies_node(state: TranslationState) -> TranslationState:
     """Translate masking policy artifacts."""
     if not state["batch"]:
         return state
-    result = translate_masking_policies(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_masking_policies", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_masking_policies(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_masking_policies", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("masking_policies", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_masking_policies", success=False)
+        raise
 
 
 def translate_udfs_node(state: TranslationState) -> TranslationState:
     """Translate UDF artifacts."""
     if not state["batch"]:
         return state
-    result = translate_udfs(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_udfs", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_udfs(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_udfs", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("udfs", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_udfs", success=False)
+        raise
 
 
 def translate_procedures_node(state: TranslationState) -> TranslationState:
     """Translate procedure artifacts."""
     if not state["batch"]:
         return state
-    result = translate_procedures(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_procedures", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_procedures(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_procedures", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("procedures", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_procedures", success=False)
+        raise
 
 
 def translate_file_formats_node(state: TranslationState) -> TranslationState:
     """Translate file format artifacts."""
     if not state["batch"]:
         return state
-    result = translate_file_formats(state["batch"])
-    return {**state, "results": state["results"] + [result]}
+    
+    obs = get_observability()
+    metrics = obs.get_metrics() if obs else None
+    batch = state["batch"]
+    
+    if metrics:
+        metrics.start_stage("translate_file_formats", {
+            "artifact_type": batch.artifact_type,
+            "batch_size": len(batch.items)
+        })
+    
+    try:
+        result = translate_file_formats(state["batch"])
+        if metrics:
+            metrics.end_stage("translate_file_formats", success=True, items_processed=len(batch.items))
+            metrics.record_artifact("file_formats", count=len(batch.items))
+        return {**state, "results": state["results"] + [result]}
+    except Exception as e:
+        if metrics:
+            metrics.end_stage("translate_file_formats", success=False)
+        raise
 
 
 def evaluation_node(state: TranslationState) -> TranslationState:
@@ -359,7 +663,6 @@ class TranslationGraph:
             self.logger.error("Translation graph execution failed", context={
                 "artifact_type": batch.artifact_type
             }, error=str(e))
-            summary = finalize()
             raise
 
     def run_batches(self, batches: List[ArtifactBatch]) -> Dict[str, Any]:
@@ -414,10 +717,14 @@ class TranslationGraph:
                         merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
                         merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
                     elif key == "observability":
-                        # Keep only the last observability summary
-                        merged_result["observability"] = value
+                        # Skip individual observability summaries, will add merged one at the end
+                        pass
                     elif key in merged_result:
                         merged_result[key].extend(value)
+
+            # Finalize observability after all batches are processed
+            summary = finalize()
+            merged_result["observability"] = summary
 
             self.logger.info("Batch processing completed", context={"total_batches": len(batches)})
             return merged_result
