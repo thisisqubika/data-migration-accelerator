@@ -50,9 +50,11 @@ resources:
           depends_on:
             - task_key: artifact_translation_task
           existing_cluster_id: 1214-215558-eghymads
+          libraries:
+            - whl: "../dist/*.whl"
           python_wheel_task:
             entry_point: migration-report
-            package_name: migration_report_package
+            package_name: migration_accelerator_package
               
       # Using existing cluster "data-migration" (ID: 1214-215558-eghymads); no job_clusters or spark_version needed.
 
