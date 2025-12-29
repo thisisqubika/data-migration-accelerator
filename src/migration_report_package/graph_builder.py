@@ -35,7 +35,6 @@ def input_node(state: MigrationState) -> MigrationState:
     _ , latest = max(output_dirs, key=lambda x: x[0])
     ## Get translation results and evaluation notes
     raw = {"translation_results": [], "evaluation": []}
-    latest = os.path.join(latest, os.path.basename(latest))
     for name in os.listdir(latest):
         out = os.path.join(latest, name)
         if os.path.isdir(out):
