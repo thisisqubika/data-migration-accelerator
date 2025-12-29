@@ -40,7 +40,7 @@ def render_sidebar():
                 missing.append("`DATABRICKS_TOKEN`")
             if not job_id:
                 missing.append("`DATABRICKS_JOB_ID`")
-            st.markdown(f"Please set the following environment variables:\n- {'\n- '.join(missing)}")
+            st.markdown(f"Please set the following environment variables:\n- " + "\n- ".join(missing))
         
         st.divider()
         
