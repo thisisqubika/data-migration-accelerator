@@ -16,9 +16,25 @@ def get_output_directory() -> str:
     Returns:
         Path to output directory
     """
-    output_dir = os.environ["DDL_OUTPUT_PATH"]
+    try:
+        import dbutils
+        output_dir = os.environ["DDL_OUTPUT_PATH"]
+    except ImportError:
+        print("ImportError: dbutils not available. Probably not in a Databricks environment. Trying local:")
+        current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        output_dir = os.path.join(current_dir,"translation_graph", "output")
     return output_dir
 
+def save_results(save_dir, save_file):
+    try:
+        import dbutils
+        filepath = os.path.join(save_dir, "migration_report.md")
+        dbutils.fs.put(filepath, save_file)
+    except ImportError:
+        print("ImportError: dbutils not available. Probably not in a Databricks environment. Trying local:")
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(save_file)
+    
 def main():
     """Main entry point for file-based processing."""
     parser = argparse.ArgumentParser(
@@ -57,8 +73,7 @@ def main():
     if args.md_output:
         output_dir = os.path.dirname(args.md_output)
 
-    with open(os.path.join(output_dir, "migration_report.md"), "w", encoding="utf-8") as f:
-        f.write(md_report)
+    save_results(output_dir,md_report)
 
     print("JSON Report: ",json_report)
 
