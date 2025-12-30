@@ -18,9 +18,6 @@ def get_output_directory() -> str:
     """
     # Use environment variable if set (e.g., DDL_OUTPUT_DIR from context), otherwise fall back to local path
     output_dir = os.environ.get("DDL_OUTPUT_DIR")
-    if not output_dir:
-        current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        output_dir = os.path.join(current_dir, "translation_graph", "output")
     return output_dir
 
 def save_results(save_dir, save_file):
