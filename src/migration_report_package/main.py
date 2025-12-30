@@ -60,14 +60,14 @@ def main():
     if args.output_dir:
         input_dir = os.path.dirname(args.output_dir)
     
-    md_report, json_report = graph.run(input_dir)
+    md_report, json_report, latest_dir = graph.run(input_dir)
 
     print("Report done!")
 
     if args.md_output:
         output_dir = os.path.dirname(args.md_output)
 
-    save_results(output_dir,md_report)
+    save_results(latest_dir,md_report)
 
     print("JSON Report: ",json_report)
 

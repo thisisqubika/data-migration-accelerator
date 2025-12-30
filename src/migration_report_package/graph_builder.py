@@ -12,6 +12,7 @@ import json
 class MigrationState(TypedDict):
     """State for the migration graph execution."""
     input_dir: str
+    latest_dir: str
     raw: Dict[str, Any]
     cleaned_raw: Dict[str, Any]
     count: Dict[str, Any]
@@ -33,6 +34,7 @@ def input_node(state: MigrationState) -> MigrationState:
         output_dirs.append((run_dt, res))
     
     _ , latest = max(output_dirs, key=lambda x: x[0])
+    state["latest_dir"] = latest
     ## Get translation results and evaluation notes
     raw = {"translation_results": [], "evaluation": []}
     for name in os.listdir(latest):
@@ -142,6 +144,7 @@ class MigrationReportGraph:
         try:
             initial_state: MigrationState = {
             "input_dir": input_path,
+            "latest_dir": None,
             "raw": [],
             "count": None,
             "json_report": None,
@@ -151,7 +154,8 @@ class MigrationReportGraph:
             final_state = self.compiled_graph.invoke(initial_state)
             report = final_state["md_report"] or {}
             json_report = final_state["json_report"] or {}
-            return report[0], json_report
+            latest_dir = final_state["latest_dir"] or {}
+            return report[0], json_report, latest_dir
 
         except Exception as e:
             raise
