@@ -1,6 +1,8 @@
 # Snowflake dependencies (for data extraction)
 snowflake-connector-python>=3.0.0
 snowflake-snowpark-python>=1.0.0
+requests>=2.31.0
+typing-extensions>=4.15.0
 python-dotenv>=1.0.0
 
 # Translation graph dependencies
@@ -11,8 +13,10 @@ langgraph>=0.1.0
 sqlglot>=20.0.0
 pydantic>=2.0.0
 
-# Databricks LLM support
+# Databricks LLM support & Evaluation
 databricks-langchain>=0.1.0
+databricks-sdk>=0.1.0
+mlflow>=2.10.0
 
 # Environment variable management
 python-dotenv>=1.0.0

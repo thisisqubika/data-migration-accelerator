@@ -45,6 +45,14 @@ class SQLIssue(BaseModel):
         default=None,
         description="Suggestion for fixing the error (optional)"
     )
+    category: Optional[str] = Field(
+        default="syntax",
+        description="Category of the issue: syntax, naming, types, performance, documentation"
+    )
+    severity: Optional[str] = Field(
+        default="error",
+        description="Severity of the issue: critical, error, warning, info"
+    )
 
 
 class SQLEvaluationResult(BaseModel):
@@ -52,13 +60,21 @@ class SQLEvaluationResult(BaseModel):
     syntax_valid: bool = Field(
         description="Whether the SQL syntax is valid for Databricks"
     )
+    score: int = Field(
+        default=0,
+        description="Compliance score from 0-100 based on strict rubric"
+    )
+    best_practices_score: int = Field(
+        default=0,
+        description="Best practices score from 0-100 for optimization and documentation"
+    )
     error_message: Optional[str] = Field(
         default=None,
         description="Error message if syntax is invalid, None if valid"
     )
     issues: List[SQLIssue] = Field(
         default_factory=list,
-        description="List of syntax errors found during evaluation"
+        description="List of syntax errors or improvement opportunities found"
     )
 
 
