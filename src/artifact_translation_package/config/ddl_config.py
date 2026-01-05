@@ -177,12 +177,13 @@ class DDLConfig:
                 "additional_params": {
                     "endpoint": LangGraphConfig.DBX_ENDPOINT.value
                 }
-            }
+                        }
         },
         "processing": {
             "batch_size": LangGraphConfig.DDL_BATCH_SIZE.value,
             "max_concurrent_batches": LangGraphConfig.DDL_MAX_CONCURRENT.value,
-            "timeout_seconds": LangGraphConfig.DDL_TIMEOUT.value
+            "timeout_seconds": LangGraphConfig.DDL_TIMEOUT.value,
+            "evaluation_batch_size": 5  # Number of SQL statements per LLM evaluation call
         },
         "output": {
             "format": LangGraphConfig.DDL_OUTPUT_FORMAT.value,
@@ -196,6 +197,14 @@ class DDLConfig:
             "report_all_results": False,
             "llm_validated_artifacts": ["procedures", "pipes"],
             "skip_unsupported_artifacts": ["grants", "procedures", "udfs", "stages", "pipes", "roles"]
+        },
+        "benchmark": {
+            "mlflow_experiment_name": "sql-translation-benchmark",
+            "default_models": ["databricks-llama-4-maverick", "databricks-gemini-2-5-flash"],
+            "temperature_variations": [0.1, 0.2],
+            "artifact_types": ["tables", "views", "procedures"],
+            "judge_endpoint": "databricks-llama-4-maverick",  # LLM endpoint for evaluation/judging
+            "batch_size": 10
         },
         "langsmith": {
             "tracing": LangGraphConfig.LANGSMITH_TRACING.value,

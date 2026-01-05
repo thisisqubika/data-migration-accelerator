@@ -20,21 +20,21 @@ SQL Statements to Evaluate:
 {sql_content}
 
 Evaluate each SQL statement and provide a structured assessment. You must return a JSON object with the following structure:
-{
+{{
     "results": [
-        {
+        {{
             "syntax_valid": boolean,
             "error_message": string (null if syntax is valid),
             "issues": [
-                {
+                {{
                     "description": string,
                     "line_number": integer (optional),
                     "suggestion": string (optional)
-                }
+                }}
             ]
-        }
+        }}
     ]
-}
+}}
 
 The results array must contain one evaluation result for each SQL statement provided, in the same order.
 Focus only on syntax validity. If syntax is valid, set syntax_valid to true and error_message to null. If syntax is invalid, set syntax_valid to false and provide a clear error_message describing the syntax error."""
