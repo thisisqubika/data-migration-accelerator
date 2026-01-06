@@ -23,11 +23,7 @@ class JobManager:
         host = st.session_state.get('databricks_host', '')
         client_id = st.session_state.get('databricks_client_id', '')
         client_secret = st.session_state.get('databricks_client_secret', '')
-
-        if host and client_id and client_secret:
-            self.client = get_databricks_client(host, client_id, client_secret)
-        else:
-            self.client = None
+        self.client = get_databricks_client(host, client_id, client_secret)
 
     def _ensure_client(self) -> bool:
         """Ensure client is available and valid."""
