@@ -54,7 +54,6 @@ class ModelBenchmark:
             "llms": {
                 f"{self.artifact_type}_translator": {
                     "provider": "databricks",
-                    "model": model_config.endpoint,
                     "temperature": model_config.temperature,
                     "max_tokens": model_config.max_tokens,
                     "additional_params": {

@@ -9,6 +9,14 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+
+# Load environment variables from .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, skip .env loading
+
 from artifact_translation_package.utils.output_utils import make_timestamped_output_path, is_databricks_env
 from artifact_translation_package.utils.sql_file_writer import save_sql_files
 from artifact_translation_package.utils.result_saver import save_results
@@ -307,19 +315,23 @@ def databricks_entrypoint():
     Simplified entry point for Databricks jobs using configuration constants.
     No CLI arguments required - uses constants directly.
     """    
-    # Use constants directly - no environment variables or complex logic
+    # Use constants directly with env var overrides - no complex logic
+    catalog = os.environ.get("UC_CATALOG", UnityCatalogConfig.CATALOG.value)
+    schema = os.environ.get("UC_SCHEMA", UnityCatalogConfig.SCHEMA.value)
+    raw_volume = os.environ.get("UC_RAW_VOLUME", UnityCatalogConfig.RAW_VOLUME.value)
+    
     volume_path = (
         f"/Volumes/"
-        f"{UnityCatalogConfig.CATALOG.value}/"
-        f"{UnityCatalogConfig.SCHEMA.value}/"
-        f"{UnityCatalogConfig.RAW_VOLUME.value}/"
+        f"{catalog}/"
+        f"{schema}/"
+        f"{raw_volume}/"
     )
     # Respect env vars with fallbacks to constants so cluster/job-level env can override defaults
     batch_size = int(os.environ.get("DDL_BATCH_SIZE") or LangGraphConfig.DDL_BATCH_SIZE.value)
     output_format = (os.environ.get("DDL_OUTPUT_FORMAT") or LangGraphConfig.DDL_OUTPUT_FORMAT.value).lower()
     # Default output_path comes from the LangGraphConfig constant.
     # Allow an environment variable `DDL_OUTPUT_PATH` to override this (useful in Databricks jobs).
-    output_path = os.environ.get("DDL_OUTPUT_PATH") or LangGraphConfig.DDL_OUTPUT_DIR.value
+    output_path = os.environ.get("DDL_OUTPUT_PATH") or os.environ.get("DDL_OUTPUT_DIR") or LangGraphConfig.DDL_OUTPUT_DIR.value
     # Treat empty string as no output (in-memory)
     if output_path == "":
         output_path = None

@@ -24,7 +24,8 @@ def configure_page(bundle_environment: str = 'dev'):
 def initialize_config_state(db_env: dict):
     """Initialize configuration state from environment variables or Databricks environment."""
     st.session_state.databricks_host = db_env.get('host', '')
-    st.session_state.databricks_token = db_env.get('token', '')
+    st.session_state.databricks_client_id = db_env.get('client_id', '')
+    st.session_state.databricks_client_secret = db_env.get('client_secret', '')
     st.session_state.bundle_environment = db_env.get('bundle_environment', 'dev')
 
     job_id_str = os.getenv('DATABRICKS_JOB_ID') # Still allow .env override

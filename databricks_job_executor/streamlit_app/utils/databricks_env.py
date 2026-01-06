@@ -19,7 +19,8 @@ def initialize_databricks_environment() -> Dict[str, Any]:
     """
     return {
         'host': os.getenv('DATABRICKS_HOST', ''),
-        'token': os.getenv('DATABRICKS_TOKEN', ''),
+        'client_id': os.getenv('DATABRICKS_CLIENT_ID', ''),
+        'client_secret': os.getenv('DATABRICKS_CLIENT_SECRET', ''),
         'is_databricks_runtime': _is_databricks_runtime(),
         'workspace_id': os.getenv('DATABRICKS_WORKSPACE_ID', ''),
         'bundle_environment': os.getenv('DATABRICKS_BUNDLE_ENV', 'dev'),
@@ -31,13 +32,14 @@ def _is_databricks_runtime() -> bool:
     return dbutils is not None and 'DATABRICKS_RUNTIME_VERSION' in os.environ
 
 
-def get_databricks_client(host: str, token: str):
+def get_databricks_client(host: str, client_id: str, client_secret: str):
     """
-    Get Databricks client for API calls.
+    Get Databricks client for API calls using service principal authentication.
 
     Args:
         host: Databricks workspace URL
-        token: Access token
+        client_id: Service principal client ID
+        client_secret: Service principal client secret
 
     Returns:
         Databricks client instance
@@ -45,12 +47,13 @@ def get_databricks_client(host: str, token: str):
     try:
         from databricks.sdk import WorkspaceClient
         if _is_databricks_runtime():
-            # In Databricks runtime, try to get host and token from widgets or secrets
+            # In Databricks runtime, try to get credentials from widgets or secrets
             host = dbutils.widgets.get("databricks_host") if dbutils.widgets.get("databricks_host") else host
-            token = dbutils.widgets.get("databricks_token") if dbutils.widgets.get("databricks_token") else token
-            if not token and dbutils.secrets.get("databricks-token-scope", "databricks-token-key"):
-                token = dbutils.secrets.get("databricks-token-scope", "databricks-token-key")
-        return WorkspaceClient(host=host, token=token)
+            client_id = dbutils.widgets.get("databricks_client_id") if dbutils.widgets.get("databricks_client_id") else client_id
+            client_secret = dbutils.widgets.get("databricks_client_secret") if dbutils.widgets.get("databricks_client_secret") else client_secret
+            if not client_secret and dbutils.secrets.get("databricks-sp-scope", "databricks-client-secret"):
+                client_secret = dbutils.secrets.get("databricks-sp-scope", "databricks-client-secret")
+        return WorkspaceClient(host=host, client_id=client_id, client_secret=client_secret)
     except ImportError:
         # Fallback for environments without databricks-sdk
         return None
@@ -59,25 +62,26 @@ def get_databricks_client(host: str, token: str):
         return None
 
 
-def validate_connection(host: str, token: str) -> tuple[bool, str]:
+def validate_connection(host: str, client_id: str, client_secret: str) -> tuple[bool, str]:
     """
-    Validate Databricks connection.
+    Validate Databricks connection using service principal authentication.
 
     Args:
         host: Databricks workspace URL
-        token: Access token
+        client_id: Service principal client ID
+        client_secret: Service principal client secret
 
     Returns:
         Tuple of (is_valid, error_message)
     """
-    if not host or not token:
-        return False, "Host and token are required"
+    if not host or not client_id or not client_secret:
+        return False, "Host, client_id, and client_secret are required"
 
     if not host.startswith('https://'):
         return False, "Host must start with https://"
 
     try:
-        client = get_databricks_client(host, token)
+        client = get_databricks_client(host, client_id, client_secret)
         if client:
             # Test connection by trying to get current user
             client.current_user.me()

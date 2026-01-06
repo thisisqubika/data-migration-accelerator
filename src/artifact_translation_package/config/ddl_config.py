@@ -8,7 +8,6 @@ from artifact_translation_package.config.secrets import get_secret
 @dataclass
 class LLMConfig:
     provider: str
-    model: str
     api_key: Optional[str] = None
     temperature: float = 0.7
     max_tokens: Optional[int] = None
@@ -22,174 +21,157 @@ class LLMConfig:
 
 class DDLConfig:
     DEFAULT_CONFIG = {
-        "environment": LangGraphConfig.ENVIRONMENT.value,
-        "debug": LangGraphConfig.DDL_DEBUG.value,
+        "environment": os.getenv("ENVIRONMENT", LangGraphConfig.ENVIRONMENT.value),
+        "debug": os.getenv("DDL_DEBUG", str(LangGraphConfig.DDL_DEBUG.value)).lower() == "true",
         "llms": {
             "smart_router": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.1,
-                "max_tokens": 2000,
+                "temperature": float(os.getenv("DDL_TEMPERATURE", LangGraphConfig.DDL_TEMPERATURE.value)),
+                "max_tokens": int(os.getenv("DDL_MAX_TOKENS", LangGraphConfig.DDL_MAX_TOKENS.value)),
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "database_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.2,
-                "max_tokens": 4000,
+                "temperature": float(os.getenv("DDL_TEMPERATURE", LangGraphConfig.DDL_TEMPERATURE.value)),
+                "max_tokens": int(os.getenv("DDL_MAX_TOKENS", LangGraphConfig.DDL_MAX_TOKENS.value)),
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "schemas_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
-                "temperature": 0.2,
-                "max_tokens": 4000,
+                "temperature": float(os.getenv("DDL_TEMPERATURE", LangGraphConfig.DDL_TEMPERATURE.value)),
+                "max_tokens": int(os.getenv("DDL_MAX_TOKENS", LangGraphConfig.DDL_MAX_TOKENS.value)),
                 "additional_params": {
                     "endpoint": LangGraphConfig.DBX_ENDPOINT.value
                 }
             },
             "tables_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "views_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "stages_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "streams_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "pipes_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "roles_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "grants_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "tags_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "comments_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "masking_policies_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "udfs_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "procedures_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "evaluator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.1,
                 "max_tokens": 2000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
             },
             "external_locations_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
-                    "endpoint": LangGraphConfig.DBX_ENDPOINT.value
+                    "endpoint": os.getenv("DBX_ENDPOINT", LangGraphConfig.DBX_ENDPOINT.value)
                 }
                         }
         },
         "processing": {
-            "batch_size": LangGraphConfig.DDL_BATCH_SIZE.value,
-            "max_concurrent_batches": LangGraphConfig.DDL_MAX_CONCURRENT.value,
-            "timeout_seconds": LangGraphConfig.DDL_TIMEOUT.value,
+            "batch_size": int(os.getenv("DDL_BATCH_SIZE", LangGraphConfig.DDL_BATCH_SIZE.value)),
+            "max_concurrent_batches": int(os.getenv("DDL_MAX_CONCURRENT", LangGraphConfig.DDL_MAX_CONCURRENT.value)),
+            "timeout_seconds": int(os.getenv("DDL_TIMEOUT", LangGraphConfig.DDL_TIMEOUT.value)),
             "evaluation_batch_size": 5  # Number of SQL statements per LLM evaluation call
         },
         "output": {
-            "format": LangGraphConfig.DDL_OUTPUT_FORMAT.value,
-            "include_metadata": LangGraphConfig.DDL_INCLUDE_METADATA.value,
-            "compress_output": LangGraphConfig.DDL_COMPRESS_OUTPUT.value,
-            "base_dir": LangGraphConfig.DDL_OUTPUT_DIR.value,
+            "format": os.getenv("DDL_OUTPUT_FORMAT", LangGraphConfig.DDL_OUTPUT_FORMAT.value),
+            "include_metadata": os.getenv("DDL_INCLUDE_METADATA", str(LangGraphConfig.DDL_INCLUDE_METADATA.value)).lower() == "true",
+            "compress_output": os.getenv("DDL_COMPRESS_OUTPUT", str(LangGraphConfig.DDL_COMPRESS_OUTPUT.value)).lower() == "true",
+            "base_dir": os.getenv("DDL_OUTPUT_DIR", LangGraphConfig.DDL_OUTPUT_DIR.value),
             "timestamp_format": "%Y%m%d_%H%M%S"
         },
         "validation": {
@@ -207,13 +189,13 @@ class DDLConfig:
             "batch_size": 10
         },
         "langsmith": {
-            "tracing": LangGraphConfig.LANGSMITH_TRACING.value,
-            "project": LangGraphConfig.LANGSMITH_PROJECT.value,
+            "tracing": os.getenv("LANGSMITH_TRACING", str(LangGraphConfig.LANGSMITH_TRACING.value)).lower() == "true",
+            "project": os.getenv("LANGSMITH_PROJECT", LangGraphConfig.LANGSMITH_PROJECT.value),
             "endpoint": None,  # Will be loaded from secrets
             "api_key": None    # Will be loaded from secrets
         },
         "lakebase": {
-            "database": LangGraphConfig.LAKEBASE_DATABASE.value,
+            "database": os.getenv("LAKEBASE_DATABASE", LangGraphConfig.LAKEBASE_DATABASE.value),
             "host": None,      # Will be loaded from secrets
             "user": None,      # Will be loaded from secrets
             "password": None   # Will be loaded from secrets

@@ -21,10 +21,11 @@ class JobManager:
     def _update_client(self):
         """Update the Databricks client with current configuration."""
         host = st.session_state.get('databricks_host', '')
-        token = st.session_state.get('databricks_token', '')
+        client_id = st.session_state.get('databricks_client_id', '')
+        client_secret = st.session_state.get('databricks_client_secret', '')
 
-        if host and token:
-            self.client = get_databricks_client(host, token)
+        if host and client_id and client_secret:
+            self.client = get_databricks_client(host, client_id, client_secret)
         else:
             self.client = None
 
@@ -484,21 +485,25 @@ class JobManager:
 # Global job manager instance
 _job_manager = None
 _last_host = None
-_last_token = None
+_last_client_id = None
+_last_client_secret = None
 
 
 def get_job_manager() -> JobManager:
     """Get the global job manager instance, recreating if connection changed."""
-    global _job_manager, _last_host, _last_token
+    global _job_manager, _last_host, _last_client_id, _last_client_secret
     
     current_host = st.session_state.get('databricks_host', '')
-    current_token = st.session_state.get('databricks_token', '')
+    current_client_id = st.session_state.get('databricks_client_id', '')
+    current_client_secret = st.session_state.get('databricks_client_secret', '')
     
     if (_job_manager is None or
         _last_host != current_host or
-        _last_token != current_token):
+        _last_client_id != current_client_id or
+        _last_client_secret != current_client_secret):
         _job_manager = JobManager()
         _last_host = current_host
-        _last_token = current_token
+        _last_client_id = current_client_id
+        _last_client_secret = current_client_secret
     
     return _job_manager

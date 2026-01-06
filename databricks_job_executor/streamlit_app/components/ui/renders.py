@@ -15,12 +15,13 @@ def render_sidebar():
         st.markdown("### Connection Status")
         
         host = st.session_state.get('databricks_host', '')
-        token = st.session_state.get('databricks_token', '')
+        client_id = st.session_state.get('databricks_client_id', '')
+        client_secret = st.session_state.get('databricks_client_secret', '')
         
         job_id = st.session_state.get('databricks_job_id')
         
-        if host and token:
-            is_valid, error_msg = validate_connection(host, token)
+        if host and client_id and client_secret:
+            is_valid, error_msg = validate_connection(host, client_id, client_secret)
             if is_valid:
                 st.success("✅ Connected to Databricks")
                 st.info(f"**Workspace:**\n{host}")
@@ -36,8 +37,10 @@ def render_sidebar():
             missing = []
             if not host:
                 missing.append("`DATABRICKS_HOST`")
-            if not token:
-                missing.append("`DATABRICKS_TOKEN`")
+            if not client_id:
+                missing.append("`DATABRICKS_CLIENT_ID`")
+            if not client_secret:
+                missing.append("`DATABRICKS_CLIENT_SECRET`")
             if not job_id:
                 missing.append("`DATABRICKS_JOB_ID`")
             st.markdown(f"Please set the following environment variables:\n- " + "\n- ".join(missing))
@@ -57,7 +60,8 @@ def render_sidebar():
         **Configuration:**
         Set via environment variables:
         - `DATABRICKS_HOST` - Workspace URL
-        - `DATABRICKS_TOKEN` - Access token
+        - `DATABRICKS_CLIENT_ID` - Service principal client ID
+        - `DATABRICKS_CLIENT_SECRET` - Service principal client secret
         - `DATABRICKS_JOB_ID` - Job ID to run
         """)
 
@@ -88,25 +92,27 @@ def render_main_content():
     render_header()
     
     host = st.session_state.get('databricks_host', '')
-    token = st.session_state.get('databricks_token', '')
+    client_id = st.session_state.get('databricks_client_id', '')
+    client_secret = st.session_state.get('databricks_client_secret', '')
     
-    if not host or not token:
+    if not host or not client_id or not client_secret:
         st.error("⚠️ **Configuration Required**")
         st.markdown("""
         Please set the following environment variables before running the application:
         
         - `DATABRICKS_HOST` - Your Databricks workspace URL (e.g., `https://your-workspace.cloud.databricks.com`)
-        - `DATABRICKS_TOKEN` - Your Databricks personal access token
+        - `DATABRICKS_CLIENT_ID` - Your service principal client ID
+        - `DATABRICKS_CLIENT_SECRET` - Your service principal client secret
         
         You can set these in your environment or in a `.env` file.
         """)
         return
     
-    is_valid, error_msg = validate_connection(host, token)
+    is_valid, error_msg = validate_connection(host, client_id, client_secret)
     if not is_valid:
         st.error(f"❌ **Connection Failed**")
         st.error(f"Unable to connect to Databricks: {error_msg}")
-        st.info("Please check your `DATABRICKS_HOST` and `DATABRICKS_TOKEN` environment variables.")
+        st.info("Please check your `DATABRICKS_HOST`, `DATABRICKS_CLIENT_ID`, and `DATABRICKS_CLIENT_SECRET` environment variables.")
         return
     
     job_interface = JobInterface()

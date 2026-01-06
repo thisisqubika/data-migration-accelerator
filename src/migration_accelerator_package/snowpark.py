@@ -35,10 +35,10 @@ SFLKaccount = get_secret('SNOWFLAKE_ACCOUNT')
 SFLKuser = get_secret('SNOWFLAKE_USER')
 SFLKpass = get_secret('SNOWFLAKE_PASSWORD')
 
-SFLKrole = constants.SnowflakeConfig.SNOWFLAKE_ROLE.value
-SFLKwarehouse = constants.SnowflakeConfig.SNOWFLAKE_WAREHOUSE.value
-SFLKdatabase = constants.SnowflakeConfig.SNOWFLAKE_DATABASE.value
-SFLKschema = constants.SnowflakeConfig.SNOWFLAKE_SCHEMA.value
+SFLKrole = os.getenv('SNOWFLAKE_ROLE', constants.SnowflakeConfig.SNOWFLAKE_ROLE.value)
+SFLKwarehouse = os.getenv('SNOWFLAKE_WAREHOUSE', constants.SnowflakeConfig.SNOWFLAKE_WAREHOUSE.value)
+SFLKdatabase = os.getenv('SNOWFLAKE_DATABASE', constants.SnowflakeConfig.SNOWFLAKE_DATABASE.value)
+SFLKschema = os.getenv('SNOWFLAKE_SCHEMA', constants.SnowflakeConfig.SNOWFLAKE_SCHEMA.value)
 
 SFLKregion = ""
 
