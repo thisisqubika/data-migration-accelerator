@@ -93,8 +93,7 @@ def validate_connection(host: str = "", client_id: str = "", client_secret: str 
     if not all([host, client_id, client_secret]):
         return False, "Host, client_id, and client_secret are required"
 
-    if not host.startswith('https://'):
-        return False, "Host must start with https://"
+
 
     client = get_databricks_client(host, client_id, client_secret)
     if not client:
