@@ -1,10 +1,17 @@
 from enum import Enum
 
 class UnityCatalogConfig(Enum):
-    """Unity Catalog configuration for translation package"""
-    CATALOG = "qubika_partner_solutions"
-    SCHEMA = "migration_accelerator"
-    RAW_VOLUME = "snowflake_artifacts_raw"
+    """Unity Catalog configuration for translation package.
+    
+    These values are placeholders. Set via environment variables:
+    - UC_CATALOG: Unity Catalog name (required)
+    - UC_SCHEMA: Schema name (required)
+    - UC_RAW_VOLUME: Volume name (optional, has default)
+    """
+    # Placeholders - must be overridden via env vars
+    CATALOG = ""  # Set UC_CATALOG env var
+    SCHEMA = ""   # Set UC_SCHEMA env var
+    RAW_VOLUME = "snowflake_artifacts_raw"  # Can keep default
     
 
 class LangGraphConfig(Enum):
@@ -13,13 +20,10 @@ class LangGraphConfig(Enum):
     ENVIRONMENT = "development" 
     #DDL Settings
     DDL_BATCH_SIZE = 8
-    # Default outputs for Databricks should go to a Volume mounted path
-    # Use segmented path segments: /Volumes/<catalog>/<schema>/<volume_name>/
-    DDL_OUTPUT_DIR = "/Volumes/qubika_partner_solutions/migration_accelerator/outputs"
+    # DDL_OUTPUT_DIR must be set via env var (no default - depends on catalog)
+    DDL_OUTPUT_DIR = ""  # Set DDL_OUTPUT_DIR env var
     
     # Optional: DDL Generation Settings
-    #DDL_CATALOG_NAME= "demo_catalog"
-    #DDL_SCHEMA_NAME=" bronze"
     DDL_TEMPERATURE=0.1
     DDL_MAX_TOKENS=2000
     DDL_MAX_CONCURRENT = 5              
@@ -36,18 +40,17 @@ class LangGraphConfig(Enum):
 
     # LangSmith Settings
     LANGSMITH_TRACING=True
-    LANGSMITH_PROJECT="databricks-migration-accelerator-local"
-    #Configured as secrets (under migration-accelerator scope):
+    LANGSMITH_PROJECT="databricks-migration-accelerator"
+    #Configured as secrets (under scope defined by SECRETS_SCOPE):
     #LANGSMITH_ENDPOINT
     #LANGSMITH_API_KEY
 
     #Lakebase Settings
     LAKEBASE_DATABASE = "databricks_postgres"
-    #Configured as secrets (under migration-accelerator scope):
+    #Configured as secrets:
     #LAKEBASE_HOST 
     #LAKEBASE_USER 
     #LAKEBASE_PASSWORD 
 
-    #Secrets Settings
+    #Secrets Settings - default scope name
     SECRETS_SCOPE = "migration-accelerator"
-

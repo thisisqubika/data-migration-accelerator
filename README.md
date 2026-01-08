@@ -98,19 +98,64 @@ For detailed instructions on configuring Snowflake credentials, see [CONFIGURATI
    cp env.example .env
    ```
 
-2. Edit `.env` with your Snowflake credentials:
+2. Edit `.env` with your credentials:
    ```env
    SNOWFLAKE_ACCOUNT=your_account_identifier
    SNOWFLAKE_USER=your_username
    SNOWFLAKE_PASSWORD=your_password
-   SNOWFLAKE_DATABASE=DATA_MIGRATION_DB
-   SNOWFLAKE_SCHEMA=DATA_MIGRATION_SCHEMA
-   SNOWFLAKE_WAREHOUSE=COMPUTE_WH  # Optional
-   SNOWFLAKE_ROLE=SYSADMIN  # Optional
-   SNOWFLAKE_REGION=us-east-1  # Optional
+   SNOWFLAKE_DATABASE=your_database    # Required
+   SNOWFLAKE_SCHEMA=your_schema        # Required
+   SNOWFLAKE_WAREHOUSE=COMPUTE_WH      # Optional
+   SNOWFLAKE_ROLE=SYSADMIN             # Optional
+   
+   # Unity Catalog - Required
+   UC_CATALOG=your_catalog_name
+   UC_SCHEMA=migration_accelerator
    ```
 
 3. The `.env` file is already in `.gitignore` to protect your credentials
+
+### Databricks Deployment
+
+To run on Databricks, configure the following:
+
+#### Databricks Secrets
+
+Create a secrets scope and add credentials:
+
+```bash
+databricks secrets create-scope migration-accelerator
+databricks secrets put-secret migration-accelerator SNOWFLAKE_ACCOUNT
+databricks secrets put-secret migration-accelerator SNOWFLAKE_USER
+databricks secrets put-secret migration-accelerator SNOWFLAKE_PASSWORD
+databricks secrets put-secret migration-accelerator DATABRICKS_HOST
+databricks secrets put-secret migration-accelerator DATABRICKS_CLIENT_ID
+databricks secrets put-secret migration-accelerator DATABRICKS_CLIENT_SECRET
+```
+
+#### Cluster Environment Variables
+
+Set in **Cluster → Advanced Options → Spark → Environment Variables**:
+
+```bash
+UC_CATALOG=your_catalog_name
+UC_SCHEMA=migration_accelerator
+SNOWFLAKE_DATABASE=your_database
+SNOWFLAKE_SCHEMA=your_schema
+```
+
+#### GitHub Secrets (for CI/CD)
+
+| Secret | Description |
+|--------|-------------|
+| `DATABRICKS_HOST` | Workspace URL |
+| `DATABRICKS_CLIENT_ID` | OAuth M2M client ID |
+| `DATABRICKS_CLIENT_SECRET` | OAuth M2M client secret |
+| `DATABRICKS_CLUSTER_ID` | Cluster ID for jobs |
+| `UC_CATALOG` | Unity Catalog name |
+| `DEVS_GROUP` | Group name for permissions |
+
+> **Note:** The `DEVS_GROUP` (e.g., `migration-accelerator-devs`) must exist in Databricks before deployment. Create it in **Admin Console → Groups → Create Group**.
 
 ## Run Locally (translation job)
 

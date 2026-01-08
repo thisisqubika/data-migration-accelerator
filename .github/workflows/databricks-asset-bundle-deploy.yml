@@ -54,7 +54,10 @@ jobs:
 
     - name: Deploy bundle
       run: |
-        databricks bundle deploy -t dev
+        databricks bundle deploy -t dev \
+          --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
+          --var="catalog_name=${{ secrets.UC_CATALOG }}" \
+          --var="devs_group=${{ secrets.DEVS_GROUP }}"
         databricks bundle run databricks_job_executor_app -t dev 
         databricks bundle summary
         databricks bundle resources
