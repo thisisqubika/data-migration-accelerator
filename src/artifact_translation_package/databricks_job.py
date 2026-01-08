@@ -338,9 +338,9 @@ def databricks_entrypoint():
     
     volume_path = (
         f"/Volumes/"
-        f"{UnityCatalogConfig.CATALOG.value}/"
-        f"{UnityCatalogConfig.SCHEMA.value}/"
-        f"{UnityCatalogConfig.RAW_VOLUME.value}/"
+        f"{catalog}/"
+        f"{schema}/"
+        f"{raw_volume}/"
     )
     
     # Process settings with validation
