@@ -61,6 +61,21 @@ jobs:
           --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
           --var="catalog_name=${{ secrets.UC_CATALOG }}" \
           --var="devs_group=${{ secrets.DEVS_GROUP }}"
-        databricks bundle run databricks_job_executor_app -t dev 
-        databricks bundle summary
-        databricks bundle resources
+
+    - name: Run job executor app
+      run: |
+        databricks bundle run databricks_job_executor_app -t dev \
+          --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
+          --var="catalog_name=${{ secrets.UC_CATALOG }}" \
+          --var="devs_group=${{ secrets.DEVS_GROUP }}"
+
+    - name: Show bundle info
+      run: |
+        databricks bundle summary -t dev \
+          --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
+          --var="catalog_name=${{ secrets.UC_CATALOG }}" \
+          --var="devs_group=${{ secrets.DEVS_GROUP }}"
+        databricks bundle resources -t dev \
+          --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
+          --var="catalog_name=${{ secrets.UC_CATALOG }}" \
+          --var="devs_group=${{ secrets.DEVS_GROUP }}"
