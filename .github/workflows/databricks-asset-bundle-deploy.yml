@@ -50,7 +50,10 @@ jobs:
 
     - name: Validate bundle
       run: |
-        databricks bundle validate
+        databricks bundle validate -t dev \
+          --var="cluster_id=${{ secrets.DATABRICKS_CLUSTER_ID }}" \
+          --var="catalog_name=${{ secrets.UC_CATALOG }}" \
+          --var="devs_group=${{ secrets.DEVS_GROUP }}"
 
     - name: Deploy bundle
       run: |
