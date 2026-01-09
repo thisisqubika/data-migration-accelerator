@@ -25,6 +25,10 @@ from artifact_translation_package.nodes.syntax_evaluation import evaluate_batch
 from artifact_translation_package.utils.types import ArtifactBatch, TranslationResult
 from artifact_translation_package.utils.observability import initialize, finalize, get_observability
 from artifact_translation_package.utils.logger import LogLevel
+from artifact_translation_package.utils.result_merger import (
+    create_empty_result,
+    merge_result_into,
+)
 
 
 class TranslationState(TypedDict):
@@ -326,6 +330,10 @@ class TranslationGraph:
 
     def run(self, batch: ArtifactBatch) -> Dict[str, Any]:
         """Process a single batch through the translation graph."""
+        # Reset metrics for this batch to prevent accumulation across runs
+        if self.obs:
+            self.obs.get_metrics().reset()
+        
         self.logger.info("Starting translation graph execution", context={
             "artifact_type": batch.artifact_type,
             "batch_size": len(batch.items)
@@ -361,109 +369,7 @@ class TranslationGraph:
             summary = finalize()
             raise
 
-    def _initialize_merged_result(self) -> Dict[str, Any]:
-        """
-        Initialize empty merged result structure.
-        
-        Returns:
-            Dictionary with empty result structure
-        """
-        return {
-            "databases": [],
-            "schemas": [],
-            "tables": [],
-            "views": [],
-            "stages": [],
-            "external_locations": [],
-            "streams": [],
-            "pipes": [],
-            "roles": [],
-            "grants": [],
-            "tags": [],
-            "comments": [],
-            "masking_policies": [],
-            "udfs": [],
-            "procedures": [],
-            "metadata": {
-                "total_results": 0,
-                "errors": [],
-                "processing_stats": {}
-            }
-        }
 
-    def _merge_result_into(
-        self,
-        merged_result: Dict[str, Any],
-        result: Dict[str, Any]
-    ) -> None:
-        """
-        Merge a single result into the merged result structure.
-        
-        Args:
-            merged_result: The merged result dictionary to update
-            result: A single result dictionary to merge
-        """
-        for key, value in result.items():
-            if key == "metadata":
-                merged_result["metadata"]["total_results"] += result["metadata"].get("total_results", 0)
-                merged_result["metadata"]["errors"].extend(result["metadata"].get("errors", []))
-                merged_result["metadata"]["processing_stats"].update(result["metadata"].get("processing_stats", {}))
-            elif key == "observability":
-                # Merge observability data
-                if "observability" not in merged_result:
-                    merged_result["observability"] = {
-                        "run_id": value.get("run_id"),
-                        "total_duration": 0,
-                        "total_errors": 0,
-                        "total_warnings": 0,
-                        "total_retries": 0,
-                        "artifact_counts": {},
-                        "stages": {},
-                        "ai_metrics": {}
-                    }
-                
-                obs = merged_result["observability"]
-                
-                # Aggregate artifact_counts
-                for artifact_type, count in value.get("artifact_counts", {}).items():
-                    obs["artifact_counts"][artifact_type] = obs["artifact_counts"].get(artifact_type, 0) + count
-                
-                # Aggregate total_errors, total_warnings, total_retries
-                obs["total_errors"] += value.get("total_errors", 0)
-                obs["total_warnings"] += value.get("total_warnings", 0)
-                obs["total_retries"] += value.get("total_retries", 0)
-                
-                # Merge stages (aggregate items_processed, error_count and duration)
-                for stage_name, stage_data in value.get("stages", {}).items():
-                    if stage_name not in obs["stages"]:
-                        obs["stages"][stage_name] = stage_data.copy()
-                    else:
-                        # Aggregate metrics
-                        obs["stages"][stage_name]["items_processed"] += stage_data.get("items_processed", 0)
-                        obs["stages"][stage_name]["error_count"] += stage_data.get("error_count", 0)
-                        
-                        # Aggregate duration if present
-                        if "duration" in stage_data and stage_data["duration"] is not None:
-                            current_duration = obs["stages"][stage_name].get("duration", 0) or 0
-                            obs["stages"][stage_name]["duration"] = current_duration + stage_data["duration"]
-                
-                # Merge ai_metrics
-                for ai_key, ai_data in value.get("ai_metrics", {}).items():
-                    if ai_key not in obs["ai_metrics"]:
-                        obs["ai_metrics"][ai_key] = ai_data
-                    else:
-                        # Aggregate AI metrics
-                        obs["ai_metrics"][ai_key]["call_count"] += ai_data.get("call_count", 0)
-                        obs["ai_metrics"][ai_key]["total_latency"] += ai_data.get("total_latency", 0)
-                        obs["ai_metrics"][ai_key]["errors"] += ai_data.get("errors", 0)
-                        # Recalculate average latency
-                        if obs["ai_metrics"][ai_key]["call_count"] > 0:
-                            obs["ai_metrics"][ai_key]["average_latency"] = (
-                                obs["ai_metrics"][ai_key]["total_latency"] /
-                                obs["ai_metrics"][ai_key]["call_count"]
-                            )
-            elif key in merged_result:
-                merged_result[key].extend(value)
 
     def run_batches(self, batches: List[ArtifactBatch]) -> Dict[str, Any]:
         """
@@ -486,10 +392,10 @@ class TranslationGraph:
                 all_results.append(result)
 
         if all_results:
-            merged_result = self._initialize_merged_result()
+            merged_result = create_empty_result()
             
             for result in all_results:
-                self._merge_result_into(merged_result, result)
+                merge_result_into(merged_result, result)
             
             # Calculate total duration
             end_time = time.time()

@@ -48,12 +48,19 @@ def aggregate_translations(*results: TranslationResult, evaluation_results: Opti
             if result.errors:
                 merged["metadata"]["errors"].extend(result.errors)
 
-            # Update processing stats
-            merged["metadata"]["processing_stats"][artifact_type] = {
-                "count": len(result.results),
-                "errors": len(result.errors),
-                **result.metadata
-            }
+            # Update processing stats - accumulate if artifact_type already exists
+            if artifact_type in merged["metadata"]["processing_stats"]:
+                # Accumulate counts for same artifact type across batches
+                existing = merged["metadata"]["processing_stats"][artifact_type]
+                existing["count"] = existing.get("count", 0) + len(result.results)
+                existing["errors"] = existing.get("errors", 0) + len(result.errors)
+                existing["processed"] = existing.get("processed", 0) + result.metadata.get("processed", len(result.results))
+            else:
+                merged["metadata"]["processing_stats"][artifact_type] = {
+                    "count": len(result.results),
+                    "errors": len(result.errors),
+                    **result.metadata
+                }
 
             merged["metadata"]["total_results"] += len(result.results)
         
