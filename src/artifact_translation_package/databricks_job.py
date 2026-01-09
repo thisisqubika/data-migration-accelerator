@@ -10,12 +10,20 @@ import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-# Load environment variables from .env file if it exists
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass  # python-dotenv not installed, skip .env loading
+# Load .env file for local development only (skip on Databricks)
+def _is_local_env() -> bool:
+    """Check if running locally (not on Databricks)."""
+    return not (
+        "DATABRICKS_RUNTIME_VERSION" in os.environ or 
+        os.path.exists("/databricks")
+    )
+
+if _is_local_env():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # python-dotenv not installed
 
 from artifact_translation_package.utils.output_utils import make_timestamped_output_path, is_databricks_env
 from artifact_translation_package.utils.sql_file_writer import save_sql_files
@@ -314,11 +322,35 @@ def databricks_entrypoint():
     """
     Simplified entry point for Databricks jobs using configuration constants.
     No CLI arguments required - uses constants directly.
-    """    
-    # Use constants directly with env var overrides - no complex logic
-    catalog = os.environ.get("UC_CATALOG", UnityCatalogConfig.CATALOG.value)
-    schema = os.environ.get("UC_SCHEMA", UnityCatalogConfig.SCHEMA.value)
-    raw_volume = os.environ.get("UC_RAW_VOLUME", UnityCatalogConfig.RAW_VOLUME.value)
+    
+    Raises:
+        ValueError: If required environment variables are not set
+    """
+    logger = get_logger("databricks_entrypoint")
+    
+    # Validate and get required Unity Catalog config
+    catalog = os.environ.get("UC_CATALOG", "").strip() or UnityCatalogConfig.CATALOG.value
+    schema = os.environ.get("UC_SCHEMA", "").strip() or UnityCatalogConfig.SCHEMA.value
+    raw_volume = os.environ.get("UC_RAW_VOLUME", "").strip() or UnityCatalogConfig.RAW_VOLUME.value or "snowflake_artifacts_raw"
+    
+    # Validate required config
+    if not catalog:
+        error_msg = (
+            "Missing required environment variable: UC_CATALOG\n"
+            "Please set this in your cluster configuration or .env file.\n"
+            "See env.example for reference."
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    if not schema:
+        error_msg = (
+            "Missing required environment variable: UC_SCHEMA\n"
+            "Please set this in your cluster configuration or .env file.\n"
+            "See env.example for reference."
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
     
     volume_path = (
         f"/Volumes/"
@@ -326,24 +358,31 @@ def databricks_entrypoint():
         f"{schema}/"
         f"{raw_volume}/"
     )
-    # Respect env vars with fallbacks to constants so cluster/job-level env can override defaults
-    batch_size = int(os.environ.get("DDL_BATCH_SIZE") or LangGraphConfig.DDL_BATCH_SIZE.value)
-    output_format = (os.environ.get("DDL_OUTPUT_FORMAT") or LangGraphConfig.DDL_OUTPUT_FORMAT.value).lower()
-    # Default output_path comes from the LangGraphConfig constant.
-    # Allow an environment variable `DDL_OUTPUT_PATH` to override this (useful in Databricks jobs).
+    
+    # Process settings with validation
+    batch_size = int(os.environ.get("DDL_BATCH_SIZE") or LangGraphConfig.DDL_BATCH_SIZE.value or 8)
+    output_format = (os.environ.get("DDL_OUTPUT_FORMAT") or LangGraphConfig.DDL_OUTPUT_FORMAT.value or "sql").lower()
+    
+    # Output path - validate if set
     output_path = os.environ.get("DDL_OUTPUT_PATH") or os.environ.get("DDL_OUTPUT_DIR") or LangGraphConfig.DDL_OUTPUT_DIR.value
-    # Treat empty string as no output (in-memory)
-    if output_path == "":
-        output_path = None
+    if not output_path:
+        logger.warning("DDL_OUTPUT_DIR not set - will generate path from UC config")
+        output_path = f"/Volumes/{catalog}/{schema}/outputs"
+    
     output_path = make_timestamped_output_path(output_path, output_format)
+    
+    # Log configuration summary
     print("=" * 60)
     print("Databricks Translation Job Starting")
     print("=" * 60)
+    print(f"UC Catalog:    {catalog}")
+    print(f"UC Schema:     {schema}")
     print(f"Volume Path:   {volume_path}")
     print(f"Batch Size:    {batch_size}")
     print(f"Output Format: {output_format}")
     print(f"Output Path:   {output_path or 'In-memory (no file output)'}")
     print("-" * 60)
+    
     result = process_from_volume(
         volume_path=volume_path,
         batch_size=batch_size,

@@ -17,10 +17,14 @@ from migration_accelerator_package.artifact_readers import (
 from migration_accelerator_package.constants import ArtifactType, ArtifactFileName
 from migration_accelerator_package.logging_utils import get_app_logger
 
+# Default scope name - can be overridden via SECRETS_SCOPE env var
+DEFAULT_SECRETS_SCOPE = "migration-accelerator"
+
 def get_secret(secret_name):
     """Retrieve secrets from Databricks secret scope"""
+    scope = os.getenv("SECRETS_SCOPE", DEFAULT_SECRETS_SCOPE)
     try:
-        return dbutils.secrets.get("migration-accelerator", secret_name)
+        return dbutils.secrets.get(scope, secret_name)
     except Exception as e:
         # Fallback to environment variables for local development
         return os.getenv(secret_name, "")
@@ -35,12 +39,34 @@ SFLKaccount = get_secret('SNOWFLAKE_ACCOUNT')
 SFLKuser = get_secret('SNOWFLAKE_USER')
 SFLKpass = get_secret('SNOWFLAKE_PASSWORD')
 
-SFLKrole = os.getenv('SNOWFLAKE_ROLE', constants.SnowflakeConfig.SNOWFLAKE_ROLE.value)
-SFLKwarehouse = os.getenv('SNOWFLAKE_WAREHOUSE', constants.SnowflakeConfig.SNOWFLAKE_WAREHOUSE.value)
+SFLKrole = os.getenv('SNOWFLAKE_ROLE', constants.SnowflakeConfig.SNOWFLAKE_ROLE.value) or "SYSADMIN"
+SFLKwarehouse = os.getenv('SNOWFLAKE_WAREHOUSE', constants.SnowflakeConfig.SNOWFLAKE_WAREHOUSE.value) or "COMPUTE_WH"
 SFLKdatabase = os.getenv('SNOWFLAKE_DATABASE', constants.SnowflakeConfig.SNOWFLAKE_DATABASE.value)
 SFLKschema = os.getenv('SNOWFLAKE_SCHEMA', constants.SnowflakeConfig.SNOWFLAKE_SCHEMA.value)
 
 SFLKregion = ""
+
+# Validate required parameters
+missing_params = []
+if not SFLKuser:
+    missing_params.append("SNOWFLAKE_USER")
+if not SFLKpass:
+    missing_params.append("SNOWFLAKE_PASSWORD")
+if not SFLKdatabase:
+    missing_params.append("SNOWFLAKE_DATABASE")
+if not SFLKschema:
+    missing_params.append("SNOWFLAKE_SCHEMA")
+
+if missing_params:
+    error_msg = (
+        f"Missing required configuration: {', '.join(missing_params)}\n"
+        f"Please set these in your cluster environment variables or .env file.\n"
+        f"See env.example for reference."
+    )
+    logger.error(error_msg)
+    raise ValueError(error_msg)
+
+logger.info(f"Snowflake config: database={SFLKdatabase}, schema={SFLKschema}")
 
 # Build connection parameters
 connection_parameters = {
@@ -57,12 +83,6 @@ connection_parameters = {
 if SFLKregion:
     connection_parameters["region"] = SFLKregion
 
-# Validate required parameters
-if not SFLKuser or not SFLKpass:
-    raise ValueError(
-        "Missing required environment variables. Please set SNOWFLAKE_USER and SNOWFLAKE_PASSWORD "
-        "in your .env file. See env.example for reference."
-    )
 
 
 class SnowparkObjectReader:
@@ -197,7 +217,25 @@ class SnowparkObjectReader:
         
         # Use default volume path if output_dir not specified
         if output_dir is None:
-            base_volume_path = f"/Volumes/{constants.UnityCatalogConfig.CATALOG.value}/{constants.UnityCatalogConfig.SCHEMA.value}/{constants.UnityCatalogConfig.RAW_VOLUME.value}"
+            catalog = os.environ.get("UC_CATALOG", constants.UnityCatalogConfig.CATALOG.value)
+            schema = os.environ.get("UC_SCHEMA", constants.UnityCatalogConfig.SCHEMA.value)
+            raw_volume = os.environ.get("UC_RAW_VOLUME", constants.UnityCatalogConfig.RAW_VOLUME.value) or "snowflake_artifacts_raw"
+            
+            # Validate required UC config
+            if not catalog or not schema:
+                missing = []
+                if not catalog: missing.append("UC_CATALOG")
+                if not schema: missing.append("UC_SCHEMA")
+                error_msg = (
+                    f"Missing required Unity Catalog configuration: {', '.join(missing)}\n"
+                    f"Please set these in your cluster environment variables or .env file.\n"
+                    f"See env.example for reference."
+                )
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+            
+            base_volume_path = f"/Volumes/{catalog}/{schema}/{raw_volume}"
+            logger.info(f"Unity Catalog volume path: {base_volume_path}")
         else:
             base_volume_path = output_dir
         

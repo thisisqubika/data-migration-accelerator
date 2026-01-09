@@ -63,7 +63,6 @@ def initialize_job_state():
 
 def initialize_environment_state(db_env: dict):
     """Initialize environment-related state."""
-    # Always update to ensure we have the latest runtime detection
     st.session_state.databricks_env = db_env
 
 

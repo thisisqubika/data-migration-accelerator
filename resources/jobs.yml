@@ -1,3 +1,9 @@
+variables:
+  cluster_id:
+    description: "Databricks cluster ID for job execution (required)"
+  devs_group:
+    description: "Group name for permissions (required)"
+
 resources:
   jobs:
     snowflake_ingestion_job:
@@ -5,13 +11,13 @@ resources:
 
       permissions: 
         - level: CAN_MANAGE_RUN
-          group_name: migration-accelerator-devs
+          group_name: ${var.devs_group}
 
         
       tasks:
         - task_key: snowflake_ingestion_task
-          # Run on existing cluster "data-migration"
-          existing_cluster_id: 1214-215558-eghymads
+          # Run on existing cluster configured via cluster_id variable
+          existing_cluster_id: ${var.cluster_id}
           libraries:
             - whl: "../dist/*.whl"
           python_wheel_task:
@@ -21,7 +27,7 @@ resources:
         - task_key: snowflake_ingestion_validation_task
           depends_on:
             - task_key: snowflake_ingestion_task
-          existing_cluster_id: 1214-215558-eghymads
+          existing_cluster_id: ${var.cluster_id}
           libraries:
             - whl: "../dist/*.whl"
           python_wheel_task:
@@ -31,7 +37,7 @@ resources:
         - task_key: grant_flattening_task
           depends_on:
             - task_key: snowflake_ingestion_task
-          existing_cluster_id: 1214-215558-eghymads
+          existing_cluster_id: ${var.cluster_id}
           libraries:
             - whl: "../dist/*.whl"
           python_wheel_task:
@@ -41,7 +47,7 @@ resources:
         - task_key: artifact_translation_task
           depends_on:
             - task_key: grant_flattening_task
-          existing_cluster_id: 1214-215558-eghymads
+          existing_cluster_id: ${var.cluster_id}
           python_wheel_task:
             entry_point: translation-module
             package_name: migration_accelerator_package
@@ -49,14 +55,12 @@ resources:
         - task_key: migration_report_task
           depends_on:
             - task_key: artifact_translation_task
-          existing_cluster_id: 1214-215558-eghymads
+          existing_cluster_id: ${var.cluster_id}
           libraries:
             - whl: "../dist/*.whl"
           python_wheel_task:
             entry_point: migration-report
             package_name: migration_accelerator_package
               
-      # Using existing cluster "data-migration" (ID: 1214-215558-eghymads); no job_clusters or spark_version needed.
-
       timeout_seconds: 3600
       max_concurrent_runs: 1

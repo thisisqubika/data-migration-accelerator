@@ -68,7 +68,15 @@ class MetricsCollector:
         """Initialize metrics collector."""
         if self._initialized:
             return
+        self.reset()
+        self._initialized = True
+    
+    def reset(self):
+        """Reset all metrics for a new run.
         
+        This should be called at the start of each translation run to ensure
+        metrics don't accumulate across runs.
+        """
         self.run_id: Optional[str] = None
         self.start_time: float = time.time()
         self.end_time: Optional[float] = None
@@ -82,7 +90,6 @@ class MetricsCollector:
         self.total_retries: int = 0
         
         self.logger = get_logger("metrics")
-        self._initialized = True
     
     def set_run_id(self, run_id: str):
         """Set run ID for this execution."""
