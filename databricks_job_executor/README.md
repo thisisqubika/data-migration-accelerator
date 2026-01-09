@@ -16,7 +16,7 @@ A Streamlit application for executing and monitoring Databricks migration jobs.
 - Python 3.8+
 - Streamlit
 - Databricks workspace access
-- Databricks personal access token
+- Databricks service principal with OAuth M2M credentials (client ID and client secret)
 
 ### Installation
 
@@ -28,14 +28,16 @@ pip install -r requirements.txt
 2. Set environment variables:
 ```bash
 export DATABRICKS_HOST="https://your-workspace.cloud.databricks.com"
-export DATABRICKS_TOKEN="your-personal-access-token"
+export DATABRICKS_CLIENT_ID="your-client-id"
+export DATABRICKS_CLIENT_SECRET="your-client-secret"
 export DATABRICKS_JOB_ID="123456"  # Optional: specific job ID to run
 ```
 
 Or create a `.env` file:
 ```
 DATABRICKS_HOST=https://your-workspace.cloud.databricks.com
-DATABRICKS_TOKEN=your-personal-access-token
+DATABRICKS_CLIENT_ID=your-client-id
+DATABRICKS_CLIENT_SECRET=your-client-secret
 DATABRICKS_JOB_ID=123456
 ```
 
@@ -86,9 +88,14 @@ This application can be deployed to Databricks using Databricks Asset Bundles.
 
 The application requires the following environment variables:
 
-- **DATABRICKS_HOST** (required): Your Databricks workspace URL (e.g., `https://your-workspace.cloud.databricks.com`)
-- **DATABRICKS_TOKEN** (required): Your Databricks personal access token
+- **DATABRICKS_HOST** (required for local): Your Databricks workspace URL (e.g., `https://your-workspace.cloud.databricks.com`)
+- **DATABRICKS_CLIENT_ID** (required for local): Your service principal client ID
+- **DATABRICKS_CLIENT_SECRET** (required for local): Your service principal client secret
 - **DATABRICKS_JOB_ID** (required): The specific job ID to run
+
+**Authentication Methods:**
+- **Local Development**: Uses OAuth M2M (service principal) with `DATABRICKS_CLIENT_ID` and `DATABRICKS_CLIENT_SECRET`
+- **Databricks Runtime**: Automatically uses built-in authentication (no credentials needed)
 
 These credentials are read from environment variables at startup. The connection status is displayed in the sidebar.
 
@@ -104,7 +111,7 @@ These credentials are read from environment variables at startup. The connection
 
 ## Security Note
 
-Never commit your `DATABRICKS_TOKEN` to version control. Always use environment variables or secure credential management systems.
+Never commit your `DATABRICKS_CLIENT_SECRET` to version control. Always use environment variables or secure credential management systems (e.g., Databricks Secrets).
 
 ### Setting Environment Variables and Secrets on Databricks
 
@@ -126,33 +133,26 @@ When deploying and running the Streamlit app on Databricks, you can configure th
             # MY_CUSTOM_VAR: "value"
     ```
 
-2.  **Databricks Widgets (for `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_JOB_ID`)**:
-    When you launch a Databricks App, you can pass parameters as widgets. The Streamlit app is configured to read `databricks_host`, `databricks_token`, and `databricks_job_id` from these widgets if they are present.
+2.  **Databricks App Configuration**:
+    When deploying to Databricks as an app, authentication is handled automatically using the Databricks runtime's built-in authentication. No explicit credentials (client ID/secret) are needed when running on Databricks.
 
-    To set widgets when launching the app:
-    *   Go to your Databricks workspace.
-    *   Navigate to "Apps" (or the equivalent section where deployed apps are listed).
-    *   Select your deployed app (e.g., `databricks-job-executor-streamlit`).
-    *   Click "Launch" or "Run App".
-    *   In the launch dialog, you may find options to set parameters. If not directly available, you might need to configure them in the `databricks.yml` or rely on secrets.
-        *   `databricks_host`: `https://your-workspace.cloud.databricks.com`
-        *   `databricks_token`: `dapixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (your personal access token)
-        *   `databricks_job_id`: `123456` (the ID of the job you want to execute)
+    For local development configuration, you can optionally use Databricks Widgets to pass `databricks_host`, `databricks_client_id`, `databricks_client_secret`, and `databricks_job_id` if needed.
 
-3.  **Databricks Secrets (for `DATABRICKS_TOKEN`)**:
-    For enhanced security, it is recommended to store your `DATABRICKS_TOKEN` in Databricks Secrets. The application will attempt to retrieve the token from a secret scope if it's not provided via environment variables or widgets.
+3.  **Databricks Secrets (for Local Development)**:
+    For enhanced security during local development, you can store your OAuth credentials in Databricks Secrets and retrieve them programmatically.
 
     To set up Databricks Secrets:
     *   **Create a Secret Scope**:
         ```bash
-        databricks secrets create-scope --scope databricks-token-scope
+        databricks secrets create-scope --scope oauth-credentials
         ```
         (You might need to configure ACLs for this scope to allow users/groups to read it.)
-    *   **Put the Secret**:
+    *   **Put the Secrets**:
         ```bash
-        databricks secrets put --scope databricks-token-scope --key databricks-token-key
+        databricks secrets put --scope oauth-credentials --key client-id
+        databricks secrets put --scope oauth-credentials --key client-secret
         ```
-        When prompted, paste your Databricks personal access token.
+        When prompted, enter your service principal credentials.
 
-    The application will then automatically attempt to retrieve the token using `dbutils.secrets.get("databricks-token-scope", "databricks-token-key")` when running in the Databricks environment.
+    **Note**: When running on Databricks as an app, the runtime automatically handles authentication, so explicit credential storage is not required.
 
