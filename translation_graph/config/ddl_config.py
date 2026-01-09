@@ -13,7 +13,6 @@ except ImportError:
 @dataclass
 class LLMConfig:
     provider: str
-    model: str
     api_key: Optional[str] = None
     temperature: float = 0.7
     max_tokens: Optional[int] = None
@@ -32,7 +31,6 @@ class DDLConfig:
         "llms": {
             "smart_router": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.1,
                 "max_tokens": 2000,
                 "additional_params": {
@@ -41,7 +39,6 @@ class DDLConfig:
             },
             "database_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -50,7 +47,6 @@ class DDLConfig:
             },
             "schemas_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -59,7 +55,6 @@ class DDLConfig:
             },
             "tables_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -68,7 +63,6 @@ class DDLConfig:
             },
             "views_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -77,7 +71,6 @@ class DDLConfig:
             },
             "stages_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -86,7 +79,6 @@ class DDLConfig:
             },
             "streams_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -95,7 +87,6 @@ class DDLConfig:
             },
             "pipes_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -104,7 +95,6 @@ class DDLConfig:
             },
             "roles_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -113,7 +103,6 @@ class DDLConfig:
             },
             "grants_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -122,7 +111,6 @@ class DDLConfig:
             },
             "tags_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -131,7 +119,6 @@ class DDLConfig:
             },
             "comments_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -140,7 +127,6 @@ class DDLConfig:
             },
             "masking_policies_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -149,7 +135,6 @@ class DDLConfig:
             },
             "udfs_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -158,7 +143,6 @@ class DDLConfig:
             },
             "procedures_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -167,7 +151,6 @@ class DDLConfig:
             },
             "file_formats_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -176,7 +159,6 @@ class DDLConfig:
             },
             "external_locations_translator": {
                 "provider": "databricks",
-                "model": "databricks-llama-4-maverick",
                 "temperature": 0.2,
                 "max_tokens": 4000,
                 "additional_params": {
@@ -185,7 +167,6 @@ class DDLConfig:
             },
             "evaluator": {
                 "provider": "databricks",
-                "model": "databricks-meta-llama-3-1-8b-instruct",
                 "temperature": 0.1,
                 "max_tokens": 1000,
                 "additional_params": {
