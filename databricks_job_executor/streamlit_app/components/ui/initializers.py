@@ -62,8 +62,7 @@ def initialize_job_state():
 
 def initialize_environment_state(db_env: dict):
     """Initialize environment-related state."""
-    if 'databricks_env' not in st.session_state:
-        st.session_state.databricks_env = db_env
+    st.session_state.databricks_env = db_env
 
 
 def initialize_session_state(db_env: dict):

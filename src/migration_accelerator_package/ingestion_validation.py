@@ -4,6 +4,7 @@ Runs as a Databricks wheel task using 'snowflake-validator'.
 """
 
 import json
+import os
 from snowflake.snowpark import Session
 from databricks.sdk.runtime import dbutils
 
@@ -26,12 +27,27 @@ def main():
     connection_parameters = build_snowflake_connection_params()
     session = Session.builder.configs(connection_parameters).create()
 
-    db = SnowflakeConfig.SNOWFLAKE_DATABASE.value
-    schema = SnowflakeConfig.SNOWFLAKE_SCHEMA.value
+    # Get database/schema from env vars with fallback to constants
+    db = os.environ.get("SNOWFLAKE_DATABASE", SnowflakeConfig.SNOWFLAKE_DATABASE.value)
+    schema = os.environ.get("SNOWFLAKE_SCHEMA", SnowflakeConfig.SNOWFLAKE_SCHEMA.value)
+    
+    # Validate required config
+    if not db or not schema:
+        missing = []
+        if not db: missing.append("SNOWFLAKE_DATABASE")
+        if not schema: missing.append("SNOWFLAKE_SCHEMA")
+        error_msg = (
+            f"Missing required configuration: {', '.join(missing)}\n"
+            f"Please set these in your cluster environment variables or .env file.\n"
+            f"See env.example for reference."
+        )
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    logger.info(f"Validating: database={db}, schema={schema}")
 
     volume_path = get_uc_volume_path()
     logger.info(f"UC Volume Path: {volume_path}")
-
 
     validator = MetadataValidator(session, volume_path)
 

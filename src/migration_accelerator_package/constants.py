@@ -1,15 +1,29 @@
 from enum import Enum
 
 class SnowflakeConfig(Enum):
+    """Snowflake configuration.
+    
+    Database and schema must be set via environment variables:
+    - SNOWFLAKE_DATABASE (required)
+    - SNOWFLAKE_SCHEMA (required)
+    """
     SNOWFLAKE_ROLE = "SYSADMIN"
     SNOWFLAKE_WAREHOUSE = "COMPUTE_WH"
-    SNOWFLAKE_DATABASE = "LVDMS"
-    SNOWFLAKE_SCHEMA = "LVDMS"
+    # Placeholders - must be overridden via env vars
+    SNOWFLAKE_DATABASE = ""  # Set SNOWFLAKE_DATABASE env var
+    SNOWFLAKE_SCHEMA = ""    # Set SNOWFLAKE_SCHEMA env var
 
 class UnityCatalogConfig(Enum):
-    CATALOG = "qubika_partner_solutions"
-    SCHEMA = "migration_accelerator"
-    RAW_VOLUME = "snowflake_artifacts_raw"
+    """Unity Catalog configuration.
+    
+    Catalog and schema must be set via environment variables:
+    - UC_CATALOG (required)
+    - UC_SCHEMA (required)
+    """
+    # Placeholders - must be overridden via env vars
+    CATALOG = ""  # Set UC_CATALOG env var
+    SCHEMA = ""   # Set UC_SCHEMA env var
+    RAW_VOLUME = "snowflake_artifacts_raw"  # Can keep default
 
 class ArtifactType(Enum):
     """Enumeration of Snowflake artifact types."""
