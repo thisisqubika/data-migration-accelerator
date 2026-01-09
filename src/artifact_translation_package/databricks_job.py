@@ -9,6 +9,22 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 from pathlib import Path
+
+# Load .env file for local development only (skip on Databricks)
+def _is_local_env() -> bool:
+    """Check if running locally (not on Databricks)."""
+    return not (
+        "DATABRICKS_RUNTIME_VERSION" in os.environ or 
+        os.path.exists("/databricks")
+    )
+
+if _is_local_env():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # python-dotenv not installed
+
 from artifact_translation_package.utils.output_utils import make_timestamped_output_path, is_databricks_env
 from artifact_translation_package.utils.sql_file_writer import save_sql_files
 from artifact_translation_package.utils.result_saver import save_results

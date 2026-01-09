@@ -44,8 +44,9 @@ class Observability:
         
         self.logger = get_logger("observability", level=log_level, handlers=handlers)
         
-        # Setup metrics
+        # Setup metrics - reset to clear any accumulated state from previous runs
         self.metrics = get_metrics_collector()
+        self.metrics.reset()
         self.metrics.set_run_id(self.run_id)
         
         self.logger.info("Observability initialized", context={"run_id": self.run_id})
