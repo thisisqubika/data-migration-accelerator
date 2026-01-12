@@ -121,7 +121,7 @@ To run on Databricks, configure the following:
 
 #### Databricks Secrets
 
-Create a secrets scope and add credentials:
+Create a secrets scope and add credentials. These secrets are used at **runtime** by the Databricks jobs:
 
 ```bash
 databricks secrets create-scope migration-accelerator
@@ -133,29 +133,48 @@ databricks secrets put-secret migration-accelerator DATABRICKS_CLIENT_ID
 databricks secrets put-secret migration-accelerator DATABRICKS_CLIENT_SECRET
 ```
 
+> **Note:** The Snowflake credentials (`SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PASSWORD`) are required for the ingestion job to connect to Snowflake. The Databricks credentials are used by the Job Executor App for API authentication.
+
 #### Cluster Environment Variables
 
 Set in **Cluster → Advanced Options → Spark → Environment Variables**:
 
 ```bash
+# Required - Unity Catalog configuration
 UC_CATALOG=your_catalog_name
 UC_SCHEMA=migration_accelerator
+
+# Required - Snowflake source context
 SNOWFLAKE_DATABASE=your_database
 SNOWFLAKE_SCHEMA=your_schema
+
+# Required - Translation output configuration
+DDL_OUTPUT_DIR=/Volumes/your_catalog/migration_accelerator/outputs
+DBX_ENDPOINT=databricks-llama-4-maverick
+
+# Optional - Override defaults if needed
+# SECRETS_SCOPE=migration-accelerator    # Default: migration-accelerator
+# UC_RAW_VOLUME=snowflake_artifacts_raw  # Default: snowflake_artifacts_raw
+# SNOWFLAKE_WAREHOUSE=COMPUTE_WH         # Default: COMPUTE_WH
+# SNOWFLAKE_ROLE=SYSADMIN                # Default: SYSADMIN
 ```
 
 #### GitHub Secrets (for CI/CD)
 
+These secrets are used by **GitHub Actions** to deploy the Databricks Asset Bundle (not at runtime):
+
 | Secret | Description |
 |--------|-------------|
-| `DATABRICKS_HOST` | Workspace URL |
-| `DATABRICKS_CLIENT_ID` | OAuth M2M client ID |
-| `DATABRICKS_CLIENT_SECRET` | OAuth M2M client secret |
-| `DATABRICKS_CLUSTER_ID` | Cluster ID for jobs |
-| `UC_CATALOG` | Unity Catalog name |
-| `DEVS_GROUP` | Group name for permissions |
+| `DATABRICKS_HOST` | Workspace URL (e.g., `https://your-workspace.cloud.databricks.com`) |
+| `DATABRICKS_CLIENT_ID` | Service principal OAuth M2M client ID |
+| `DATABRICKS_CLIENT_SECRET` | Service principal OAuth M2M client secret |
+| `DATABRICKS_CLUSTER_ID` | Existing all-purpose cluster ID for running job tasks |
+| `UC_CATALOG` | Unity Catalog name for schema and volume creation |
+| `DEVS_GROUP` | Databricks group name for job and catalog permissions |
 
 > **Note:** The `DEVS_GROUP` (e.g., `migration-accelerator-devs`) must exist in Databricks before deployment. Create it in **Admin Console → Groups → Create Group**.
+
+> **Secrets vs GitHub Secrets:** Databricks Secrets (in the scope) are read at **runtime** by the jobs. GitHub Secrets are used at **deploy time** by the CI/CD pipeline to authenticate and configure the bundle.
 
 #### After deployment
 
