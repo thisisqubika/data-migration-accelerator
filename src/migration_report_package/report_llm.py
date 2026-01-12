@@ -26,7 +26,10 @@ REPORT STRUCTURE:
 
 The report must be returned in MARKDOWN format. Make all H2 and H3 headers UPPERCASE and numbered. Between each H2 header and its content add a line break. Where possible, introduce tabs or visual separation between sections to enhance scanability. 
 
-The report must include the following sections:
+The report must include the following items and sections:
+
+- First a short executive summary stating in words: what got migrated, what requires manual intervention, whether the project is deployable or not (even if there are errors on some artifacts).
+
 - ## Overview: Summary of migration process, always provide a numeric summary following the example below:
    ---------
     - Artifacts Processed: 8 (3 schemas, 2 tables, 2 views)
@@ -35,6 +38,7 @@ The report must include the following sections:
     - Migration Warnings: 0
     - Overall Status: Partial Success (schemas and views completed; tables require fixes)
    ---------
+If "Partial Success" is returned, add a few lines saying if the project is still acceptable to go live and what is missing to achieve sucess, also, if applicable, answer, is this result exprected because of some characteristic of the workspace?
 Below the summary above include the following table, make sure to align the colons and the three columns. 
 
 >  **Error Severity Guide**                                                            
@@ -43,7 +47,7 @@ Below the summary above include the following table, make sure to align the colo
 >  \[BLOCKER\]   Validation Error    : Translation completed but failed validation.            
 >  \[WARNING\]   Migration Warning   : Non-blocking issues; artifact is deployable.   
 
-- ## Objects requiring manual review
+- ## Objects requiring manual review: For every action that requires manual review add what is the user expected to do, if there is a suggested workaround, if it is out of scope, or if this is something a future version of the accelerator could cover. Also add if this issue will block the general deloyment and if deployable, what is usable and what isn't.
 - ## Detailed results per artifact type: Every entry must include: artifact name, type, status [one of: Success, Validation Error, Translation Error, Warning] and Issue. In the Issue column, if the status is error assign it to one of this categories: Syntax Error, LLM Error, Task Failure. If no error just add "-". Below the table add the following explanation, make sure to align the colons and the three columns.
 
 > **STATUS & SEVERITY GUIDE**                                                              
@@ -78,15 +82,12 @@ Below the summary above include the following table, make sure to align the colo
     - Dependencies that failed or were skipped
     - Recommendations for improving translation rules
     - Suggested workaround for unsupported features
-- ## Performance metrics: include total duration, translation time, validation time, average time per artifact, pipeline execution status, retries, timeouts. Format it like this example, both columns should be aligned:
+- ## Performance metrics: include total duration, average time per artifact, pipeline execution status, retries, timeouts. Format it like this example, both columns should be aligned:
   ---------
 - Total Duration: 		31.17 seconds
-- Translation Time: 		N/A
-- Validation Time: 		N/A
 - Average Time per Artifact: 	~3.9 seconds
 - Pipeline Execution: 		Completed successfully
 - Retries: 			0
-- Timeouts: 
   ---------
 
 The migration output is:
