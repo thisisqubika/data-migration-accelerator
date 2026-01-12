@@ -56,9 +56,44 @@ def initialize_job_state():
 
     if 'running_jobs' not in st.session_state:
         st.session_state.running_jobs = {}
+        # Restore active runs from Databricks on first load
+        _restore_active_runs()
 
     if 'job_logs' not in st.session_state:
         st.session_state.job_logs = {}
+
+
+def _restore_active_runs():
+    """Query Databricks for active runs of the configured job and restore them."""
+    from streamlit_app.utils.job_manager import get_job_manager
+    from streamlit_app.utils.formatters import format_timestamp
+    
+    job_id = st.session_state.get('databricks_job_id')
+    if not job_id:
+        return
+    
+    try:
+        job_manager = get_job_manager()
+        if not job_manager:
+            return
+        
+        active_runs = job_manager.get_active_runs(job_id)
+        
+        for run_info in active_runs:
+            run_id = run_info['run_id']
+            start_time_ms = run_info.get('start_time_ms')
+            
+            st.session_state.running_jobs[run_id] = {
+                'job_id': run_info['job_id'],
+                'job_name': run_info['job_name'],
+                'start_time': format_timestamp(start_time_ms),
+                'start_time_ms': start_time_ms,
+                'status': run_info['status'],
+                'run_id': run_id
+            }
+    except Exception:
+        # Silently fail - don't block initialization
+        pass
 
 
 def initialize_environment_state(db_env: dict):

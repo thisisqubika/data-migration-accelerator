@@ -5,6 +5,7 @@ import time
 import streamlit as st
 from typing import Dict, Any
 from streamlit_app.utils.job_manager import get_job_manager
+from streamlit_app.utils.formatters import format_duration, format_timestamp, get_status_emoji
 
 
 class JobInterface:
@@ -96,11 +97,13 @@ class JobInterface:
             run_id = self.job_manager.run_job(job_id)
 
         if run_id:
-            # Store running job info
+            # Store running job info with start time in milliseconds for duration calculation
+            current_time_ms = int(time.time() * 1000)
             st.session_state.running_jobs[run_id] = {
                 'job_id': job_id,
                 'job_name': job_name,
                 'start_time': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'start_time_ms': current_time_ms,
                 'status': 'PENDING',
                 'run_id': run_id
             }
@@ -138,9 +141,19 @@ class JobInterface:
                     st.metric("Start Time", job_info.get('start_time', 'N/A'))
 
                 with col3:
-                    duration = job_info.get('execution_duration', 'N/A')
-                    if duration and duration != 'N/A':
-                        duration = f"{duration // 1000}s"  # Convert ms to seconds
+                    # Calculate duration based on status
+                    if status in ['PENDING', 'RUNNING']:
+                        # For running jobs, calculate elapsed time
+                        start_time_ms = job_info.get('start_time_ms')
+                        if start_time_ms:
+                            elapsed_ms = int(time.time() * 1000) - start_time_ms
+                            duration = format_duration(elapsed_ms)
+                        else:
+                            duration = 'N/A'
+                    else:
+                        # For completed jobs, use execution_duration from API
+                        execution_duration = job_info.get('execution_duration')
+                        duration = format_duration(execution_duration)
                     st.metric("Duration", duration)
 
                 with col4:
@@ -188,6 +201,11 @@ class JobInterface:
 
                 # Update job info
                 st.session_state.running_jobs[run_id]['status'] = status
+                
+                # Update start_time_ms from API if not already set (for restored runs)
+                if status_info.get('start_time') and not st.session_state.running_jobs[run_id].get('start_time_ms'):
+                    st.session_state.running_jobs[run_id]['start_time_ms'] = status_info['start_time']
+                
                 if status_info.get('execution_duration'):
                     st.session_state.running_jobs[run_id]['execution_duration'] = status_info['execution_duration']
 
@@ -231,6 +249,50 @@ class JobInterface:
         else:
             st.info("No logs available yet.")
 
+    def render_last_completed_job(self):
+        """Render section for viewing logs from the last completed job."""
+        if not self.job_manager:
+            return
+        
+        job_id = st.session_state.get('databricks_job_id')
+        if not job_id:
+            return
+        
+        st.markdown("📜 **Last Completed Job**")
+        
+        # Get last completed run
+        last_run = self.job_manager.get_last_completed_run(job_id)
+        
+        if not last_run:
+            st.info("No completed job runs found.")
+            return
+        
+        run_id = last_run['run_id']
+        status = last_run.get('status', 'UNKNOWN')
+        
+        # Get status emoji using utility
+        status_emoji = get_status_emoji(status)
+        
+        with st.expander(f"{status_emoji} Run {run_id}: {last_run['job_name']} - {status}", expanded=False):
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.metric("Status", status)
+            
+            with col2:
+                # Format timestamp using utility
+                completed_at = format_timestamp(last_run.get('start_time_ms'))
+                st.metric("Completed At", completed_at)
+            
+            with col3:
+                # Format duration using utility
+                duration = format_duration(last_run.get('execution_duration'))
+                st.metric("Duration", duration)
+            
+            # Button to view logs
+            if st.button("📋 View Logs", key=f"last_logs_{run_id}"):
+                self._show_job_logs(run_id)
+
     def render(self):
         """Render the complete job interface."""
         self.update_connection()
@@ -247,3 +309,8 @@ class JobInterface:
         if st.session_state.running_jobs:
             st.divider()
             self.render_running_jobs()
+        
+        # Last completed job (for viewing logs after job finishes)
+        if st.session_state.get('databricks_job_id'):
+            st.divider()
+            self.render_last_completed_job()
