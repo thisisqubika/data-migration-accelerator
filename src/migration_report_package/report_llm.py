@@ -123,7 +123,7 @@ def generate_report(data: Dict[str, Any], count: Dict[str, Any]) -> List[str]:
     llm = create_node_llm("report_node", llm_config=llm_config)
     results = []
 
-    prompt = PROMPT.format(count=count, evaluation=data["evaluation"], translation_results=data["translation_results"])
+    prompt = PROMPT.format(count=count, evaluation=data.get("evaluation", []), translation_results=data.get("translation_results", []))
 
     try:
         response = llm.invoke(prompt)
