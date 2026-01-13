@@ -159,20 +159,7 @@ SNOWFLAKE_SCHEMA=your_schema
 
 #### After deployment
 
-Once deployed, get the service principal name from the Databricks App in Compute->Apps->dbx-job-executor-app->Authorization->App Authorization and th job id from Jobs & Pipelines->snowflake_ingestion_job->Job Details->Job ID. 
-Then, in the databricks cli run:
-
-```bash
-databricks jobs update-permissions your_job_id \
-  --json '{
-    "access_control_list": [
-      {
-        "permission_level": "CAN_MANAGE_RUN",
-        "service_principal_name": "your_service_principal_name"
-      }
-    ]
-  }'
-```
+Once deployed, get the service principal name from the Databricks App in Compute->Apps->dbx-job-executor-app->Authorization->App Authorization and th job id from Jobs & Pipelines->snowflake_ingestion_job->Job Details->Job ID. Then add this Service Principal to the developers permission group specified in the variable DEVS_GROUP in the Github Secrets. 
 
 #### Handle Results
 

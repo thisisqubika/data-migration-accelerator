@@ -44,85 +44,97 @@ print("JSON Report: ",json_report)
 ## Migration Report Example
 
 ```markdown
-# Migration Report
-## Overview
-The migration process has completed with the following summary:
-- Total artifacts migrated: 8
-- Total errors: 0
-- Total warnings: 0
-- Total successes: 8
-- Validation errors: 2
+## 1. EXECUTIVE SUMMARY
 
-## Detailed Results per Artifact Type
+The migration process has successfully translated 8 artifacts (3 schemas, 3 views, and 2 tables) from Snowflake to Databricks Unity Catalog. However, the translation of tables resulted in Python code, which failed Databricks validation, leading to 2 validation errors. Despite these errors, schemas and views were migrated successfully. The project is partially deployable, with schemas and views being usable. Manual intervention is required for tables to fix the validation errors. This result is expected due to the current misalignment of table translation rules with Databricks DDL requirements.
 
-### Schemas
-| Artifact Name | Type | Status |
-| --- | --- | --- |
-| BRONZE_LAYER | schemas | success |
-| SILVER_LAYER | schemas | success |
-| GOLD_LAYER | schemas | success |
+<br>
 
-### Tables
-| Artifact Name | Type | Status |
-| --- | --- | --- |
-| EXAMPLE_TABLE_1 | tables | error |
-| EXAMPLE_TABLE_2 | tables | error |
+## 2. OVERVIEW
 
-### Views
-| Artifact Name | Type | Status |
-| --- | --- | --- |
-| ACTIVE_USERS_VIEW | views | success |
-| SALES_SUMMARY_VIEW | views | success |
-| INVENTORY_STATUS_VIEW | views | success |
+- Artifacts Processed: 8 (3 schemas, 3 views, 2 tables)
+- Migration Errors: 0
+- Validation Errors: 2
+- Migration Warnings: 0
+- Overall Status: Partial Success (schemas and views completed; tables require fixes)
 
-## Error and Warning Sections
+The project is considered partially deployable because while schemas and views are successfully translated and validated, tables require manual intervention to fix validation errors. This is expected due to the current limitations in table translation logic. The workspace characteristics, specifically the use of Python code for table translations, contribute to this outcome.
 
-### Errors
-No errors were reported during the migration.
+> **Error Severity Guide**                                                            
+> ------------------------------
+>  \[CRITICAL\]  Migration Error     : Translation or execution failed.                        
+>  \[BLOCKER\]   Validation Error    : Translation completed but failed validation.            
+>  \[WARNING\]   Migration Warning   : Non-blocking issues; artifact is deployable.   
 
-### Warnings
-No warnings were reported during the migration.
+<br>
 
-## Objects Requiring Manual Review
-The following objects require manual review due to validation errors or other issues:
-- EXAMPLE_TABLE_1 (tables): Validation failed with syntax error.
-- EXAMPLE_TABLE_2 (tables): Validation failed with syntax error.
+## 3. OBJECTS REQUIRING MANUAL REVIEW
 
-## Summary of AI-assisted vs Rule-based Outputs
-The migration utilized a combination of AI-assisted and rule-based approaches. The exact distribution is not available in the provided data.
+The tables require manual review to fix the validation errors caused by the Python code generated during translation. The user is expected to manually correct the table DDL to comply with Databricks requirements. There is no suggested workaround provided by the migration tool for this issue, and it is considered within the scope of manual intervention required for deployment. This issue will block the general deployment of tables but not schemas and views.
 
-## Performance Metrics
-- Total duration: 31.17 seconds
-- Stage durations:
-  - translate_tables: 22.95 seconds
-  - translate_views: 5.57 seconds
-  - translate_schemas: 2.44 seconds
+<br>
 
-## Analysis
+## 4. DETAILED RESULTS PER ARTIFACT TYPE
 
-### Common Translation Errors
-- The translation of tables resulted in Python code that failed validation due to syntax errors.
+| Artifact Name | Type | Status | Issue |
+| --- | --- | --- | --- |
+| DATA_MIGRATION_DB.BRONZE_LAYER | Schema | Success | - |
+| DATA_MIGRATION_DB.SILVER_LAYER | Schema | Success | - |
+| DATA_MIGRATION_DB.GOLD_LAYER | Schema | Success | - |
+| DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.ACTIVE_USERS_VIEW | View | Success | - |
+| DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.SALES_SUMMARY_VIEW | View | Success | - |
+| DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.INVENTORY_STATUS_VIEW | View | Success | - |
+| DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_1 | Table | Validation Error | Syntax Error |
+| DATA_MIGRATION_DB.DATA_MIGRATION_SCHEMA.EXAMPLE_TABLE_2 | Table | Validation Error | Syntax Error |
 
-### Patterns in Warnings or Inconsistencies
-- No warnings were reported, but the validation errors for tables indicate a potential inconsistency in the translation process.
+> **STATUS & SEVERITY GUIDE**                                                              
+> ------------------------------
+>  \[SUCCESS\]   Success            : Artifact translated and validated successfully.                       
+>  \[CRITICAL\]  Translation Error  : Artifact was not translated.                       
+>  \[BLOCKER\]   Validation Error   : Translation completed but failed validation.            
+>  \[WARNING\]   Warning            : Translated with non-blocking issues or limitations.  
 
-### Success Rate per Artifact Type
-- Schemas: 100% success (3/3)
-- Tables: 0% success (0/2) due to validation errors
-- Views: 100% success (3/3)
+<br>
 
-### Unsupported or Partially Supported Features
-- The translation process generated Python code for tables, which is not directly executable in Databricks. This indicates a potential gap in the translation rules for tables.
+## 5. MIGRATION ERRORS AND WARNINGS
 
-### Dependencies that Failed or Were Skipped
-- The tables (EXAMPLE_TABLE_1 and EXAMPLE_TABLE_2) failed due to validation errors, indicating potential issues with dependencies or the translation process.
+There were no migration errors or warnings reported during the migration process.
 
-### Recommendations for Improving Translation Rules
-1. Review and adjust the translation rules for tables to directly generate valid Databricks DDL instead of Python code.
-2. Enhance the validation step to catch syntax errors early in the translation process.
+<br>
 
-### Suggested Workaround for Unsupported Features
-For tables, manually review and convert the generated Python code into valid Databricks DDL statements. Ensure that the data types and constraints are correctly translated.
+## 6. ANALYSIS
+
+### 6.1. KEY FINDINGS
+- Schema and view translations are stable and validate successfully.
+- Table translation logic currently produces Python code, which fails Databricks validation.
+
+### 6.2. ROOT CAUSE
+- Table translation rules are misaligned with Databricks DDL requirements.
+
+### 6.3. IMPACT
+- Tables require manual intervention before deployment.
+- No impact on schemas or views.
+
+<br>
+
+## 7. FURTHER ANALYSIS
+
+- Common translation errors: None reported.
+- Patterns in warnings or inconsistencies: The generation of Python code for tables instead of valid Databricks DDL.
+- Success rate per artifact type: Schemas and views have a 100% success rate; tables have a 0% success rate due to validation errors.
+- Unsupported or partially supported features: Table translations that result in Python code are not supported as-is in Databricks.
+- Dependencies that failed or were skipped: None reported.
+- Recommendations for improving translation rules: Align table translation logic with Databricks DDL requirements.
+- Suggested workaround for unsupported features: Manual correction of table DDL.
+
+<br>
+
+## 8. PERFORMANCE METRICS
+
+- Total Duration: 		31.17 seconds
+- Average Time per Artifact: 	~3.9 seconds
+- Pipeline Execution: 		Completed successfully
+- Retries: 			0
 ```
 
 ## Requirements
