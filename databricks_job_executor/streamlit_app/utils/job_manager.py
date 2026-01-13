@@ -5,6 +5,7 @@ import os
 import streamlit as st
 from typing import List, Dict, Any, Optional, Tuple
 from streamlit_app.utils.databricks_env import get_databricks_client, validate_connection
+from streamlit_app.utils.job_run_parser import extract_run_metadata, parse_run_state
 from streamlit_app.components.ui.handlers import (
     handle_api_error, handle_job_execution_error, handle_job_cancellation_error,
     show_logs_load_error
@@ -130,6 +131,70 @@ class JobManager:
             handle_api_error("job execution", str(e))
             return None
 
+    def get_active_runs(self, job_id: int) -> List[Dict[str, Any]]:
+        """
+        Get active (running or pending) runs for a specific job.
+        
+        Args:
+            job_id: The job ID to check for active runs
+            
+        Returns:
+            List of active run information dictionaries
+        """
+        if not self._ensure_client():
+            return []
+
+        try:
+            runs = list(self.client.jobs.list_runs(job_id=job_id, active_only=True))
+            
+            active_runs = []
+            for run in runs:
+                if not hasattr(run, 'run_id') or not run.run_id:
+                    continue
+                
+                # Use parser utility for consistent data extraction
+                run_data = extract_run_metadata(run, job_id)
+                active_runs.append(run_data)
+            
+            return active_runs
+
+        except Exception:
+            # Silently fail - don't disrupt UI
+            return []
+
+    def get_last_completed_run(self, job_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Get the last completed run for a specific job.
+        
+        Args:
+            job_id: The job ID to check for completed runs
+            
+        Returns:
+            Last completed run information or None if not found
+        """
+        if not self._ensure_client():
+            return None
+
+        try:
+            runs = list(self.client.jobs.list_runs(job_id=job_id, limit=10))
+            
+            # Find the most recent terminated run
+            for run in runs:
+                if not hasattr(run, 'run_id') or not run.run_id:
+                    continue
+                
+                # Use parser to extract state
+                state = parse_run_state(run)
+                
+                # Only return terminated runs
+                if state['lifecycle_state'] == 'TERMINATED':
+                    return extract_run_metadata(run, job_id)
+            
+            return None
+
+        except Exception:
+            return None
+
     def get_run_status(self, run_id: int) -> Optional[Dict[str, Any]]:
         """
         Get the status of a job run.
@@ -161,6 +226,7 @@ class JobManager:
                     'result_state': result_state,
                 },
                 'execution_duration': run_info.execution_duration if hasattr(run_info, 'execution_duration') else None,
+                'start_time': run_info.start_time if hasattr(run_info, 'start_time') else None,
                 'tasks': run_info.tasks if hasattr(run_info, 'tasks') else [],
             }
 
