@@ -6,6 +6,95 @@ A project for testing and validating Snowflake to Databricks migration tools and
 
 This project contains Snowflake test objects that can be used to validate extractors and conversion tools that migrate Snowflake database objects to Databricks.
 
+---
+
+## Getting Started for New Clients
+
+This section guides new clients through setting up the Data Migration Accelerator for their own projects.
+
+### Repository Setup: Fork the Repository
+
+Forking creates a copy under your GitHub organization while maintaining a connection to the original repository for future updates.
+
+#### Step 1: Fork the Repository
+
+1. Navigate to the original repository on GitHub
+2. Click **Fork** in the top-right corner
+3. Select your organization as the destination
+4. Uncheck "Copy the `main` branch only" if you want all branches
+
+#### Step 2: Clone Your Fork
+
+```bash
+git clone https://github.com/YOUR_ORG/data-migration-accelerator.git
+cd data-migration-accelerator
+```
+
+#### Step 3: Configure Upstream Remote
+
+```bash
+# Add the original repository as "upstream"
+git remote add upstream https://github.com/thisisqubika/data-migration-accelerator.git
+
+# Verify remotes
+git remote -v
+# origin    https://github.com/YOUR_ORG/data-migration-accelerator.git (fetch)
+# origin    https://github.com/YOUR_ORG/data-migration-accelerator.git (push)
+# upstream  https://github.com/thisisqubika/data-migration-accelerator.git (fetch)
+# upstream  https://github.com/thisisqubika/data-migration-accelerator.git (push)
+```
+
+#### Step 4: Create a Client Branch
+
+Keep your customizations separate from `main` for easier upstream merges:
+
+```bash
+git checkout -b client/your-company-name
+```
+
+### Pulling Upstream Updates
+
+When the original accelerator has updates you want to incorporate:
+
+```bash
+# Fetch upstream changes
+git fetch upstream
+
+# Merge upstream main into your branch
+git checkout main
+git merge upstream/main
+
+# Push updated main to your fork
+git push origin main
+
+# Rebase your client branch on updated main
+git checkout client/your-company-name
+git rebase main
+```
+
+### Contributing Back
+
+If you make improvements that could benefit others:
+
+1. Create a feature branch from `main`
+2. Make your changes
+3. Push to your fork
+4. Open a Pull Request to the upstream repository
+
+### Post-Setup Checklist
+
+After forking the repository:
+
+- [ ] Update `databricks.yml` with your bundle name
+- [ ] Configure GitHub Secrets for CI/CD (see [GitHub Secrets](#github-secrets-for-cicd))
+- [ ] Set up Databricks Secrets scope (see [Databricks Secrets](#databricks-secrets))
+- [ ] Configure cluster environment variables (see [Cluster Environment Variables](#cluster-environment-variables))
+- [ ] Update `env.example` with your default values
+- [ ] Create the required Databricks group (`DEVS_GROUP`)
+- [ ] Test the deployment pipeline
+
+---
+
 ## Files
 
 - **snowflake_test_objects.sql** - Contains sample Snowflake objects (tables, views, procedures, functions, etc.) with the `data_migration` naming convention for testing migration tools.
